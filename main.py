@@ -34,10 +34,16 @@ if __name__ == '__main__':
                                                 min(point_cloud.shape[0], max(point_cloud.shape[0]//100, 100)),
                                                 pc=point_cloud)
 
+    # knn
+    print("(KNN) Finding Similar HKS points to the sampled points")
+    nbrs = neighbors.NearestNeighbors(n_neighbors=100, algorithm='ball_tree').fit(hks)
+    nbrs_distances, nbrs_indices = nbrs.kneighbors(hks[sample_indices])
+
     ps.init()
 
     ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
     ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
     ps_cloud = ps.register_point_cloud("sample points", sample_points)
+    ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[30]])
 
     ps.show()
