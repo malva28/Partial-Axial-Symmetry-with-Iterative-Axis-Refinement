@@ -44,6 +44,7 @@ class SupportingCircle:
         center = a + lambda_1*v1 + lambda_2*v2
         radius = np.linalg.norm(lambda_1*v1 + lambda_2*v2)  # ||center - a||
         normal = np.cross(v1, v2)
+        normal = normal/np.linalg.norm(normal)
 
         return center, radius, normal
 
