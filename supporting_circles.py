@@ -1,4 +1,3 @@
-import random
 import numpy as np
 
 
@@ -15,10 +14,12 @@ class SupportingCircle:
     def fit(self, point_set):
         while True:
             # self._step(point_set)
+            # ransac three points of similar_fm_points, generate circles and validate
+            rand_indices = np.random.choice(len(point_set), size=3, replace=False)
+            qa, qb, qc = point_set[rand_indices]
 
             # ransac three points of similar_fm_points
 
-            qa, qb, qc = random.sample(point_set, 3)
             c, r, n = self._compute_circle_candidate(qa, qb, qc)
             self._validate_circle((c, r, n), point_set, threshold=0.05)
             pass
