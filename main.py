@@ -9,6 +9,7 @@ import laplace
 import openmesh
 from signature import compute_signature
 from fps import compute_fps
+from supporting_circles import compute_supporting_circles
 
 
 if __name__ == '__main__':
@@ -38,6 +39,8 @@ if __name__ == '__main__':
     print("(KNN) Finding Similar HKS points to the sampled points")
     nbrs = neighbors.NearestNeighbors(n_neighbors=100, algorithm='ball_tree').fit(hks)
     nbrs_distances, nbrs_indices = nbrs.kneighbors(hks[sample_indices])
+    print("Computing Supporting Circles")
+    compute_supporting_circles(point_cloud[nbrs_indices])
 
     ps.init()
 

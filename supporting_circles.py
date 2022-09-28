@@ -1,29 +1,31 @@
 import numpy as np
+from progress_bar import print_progress_bar
 
 
 class SupportingCircle:
     def __init__(self):
-        pass
+        self.supporting_circle = None
+        self.votes = 0
 
     def get_supporting_circle(self):
-        pass
+        assert self.supporting_circle is not None, "The Supporting Circle hasn't been fitted with a point_set."
+        return self.supporting_circle
 
     def _step(self, point_set):
         pass
 
     def fit(self, point_set):
-        while True:
-            # self._step(point_set)
+        circle_candidates = []
+        for _ in range(min(100, len(point_set))):
             # ransac three points of similar_fm_points, generate circles and validate
             rand_indices = np.random.choice(len(point_set), size=3, replace=False)
             qa, qb, qc = point_set[rand_indices]
+            circle = self._compute_circle_candidate(qa, qb, qc)
+            votes = self._validate_circle(circle, point_set, threshold=0.05)
+            circle_candidates.append((circle, votes))
 
-            # ransac three points of similar_fm_points
-
-            c, r, n = self._compute_circle_candidate(qa, qb, qc)
-            self._validate_circle((c, r, n), point_set, threshold=0.05)
-            pass
-        pass
+        self.supporting_circle, self.votes = max(circle_candidates, key=lambda c: c[1])  # the candidate with max votes
+        return self.supporting_circle, self.votes
 
     @staticmethod
     def _compute_circle_candidate(a, b, c):
@@ -75,8 +77,13 @@ class SupportingCircle:
 
 
 def compute_supporting_circles(point_sets):
+    supporting_circles = []
+    _ = 0
     for point_set in point_sets:
         sc = SupportingCircle()
-        sc.fit(point_set)
+        supporting_circles.append(sc.fit(point_set))
+        print_progress_bar(_+1, len(point_sets), prefix='Progress:', length=20)
 
-    pass
+        _ += 1
+
+    return supporting_circles
