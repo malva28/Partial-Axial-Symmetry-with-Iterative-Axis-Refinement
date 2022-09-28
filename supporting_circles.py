@@ -19,15 +19,31 @@ class SupportingCircle:
             # ransac three points of similar_fm_points
 
             qa, qb, qc = random.sample(point_set, 3)
+            c, r, n = self._compute_circle_candidate(qa, qb, qc)
+            # self._validate_circle((c, r, n), point_set, threshold=0.05)
             pass
         pass
 
     @staticmethod
     def _compute_circle_candidate(a, b, c):
+        # vectors ab and ac
+        v1 = b - a
+        v2 = c - a
 
-        center = 0
-        radius = 0
-        normal = 0
+        # center has the form a + lambda1*v1 + lambda2*v2
+        # so, we find those vectors and scalars:
+
+        v11 = np.dot(v1, v1)
+        v12 = np.dot(v1, v2)
+        v22 = np.dot(v2, v2)
+
+        common = 2*(v11*v22 - v12**2)
+        lambda_1 = v22*(v11-v12) / common
+        lambda_2 = v11*(v22-v12) / common
+
+        center = a + lambda_1*v1 + lambda_2*v2
+        radius = np.linalg.norm(lambda_1*v1 + lambda_2*v2)  # ||center - a||
+        normal = np.cross(v1, v2)
 
         return center, radius, normal
 
