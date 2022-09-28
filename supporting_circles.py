@@ -20,7 +20,7 @@ class SupportingCircle:
 
             qa, qb, qc = random.sample(point_set, 3)
             c, r, n = self._compute_circle_candidate(qa, qb, qc)
-            # self._validate_circle((c, r, n), point_set, threshold=0.05)
+            self._validate_circle((c, r, n), point_set, threshold=0.05)
             pass
         pass
 
@@ -49,13 +49,28 @@ class SupportingCircle:
         return center, radius, normal
 
     @staticmethod
-    def _validate_circle(circle, point_cluster, threshold):
+    def _distance_to_circle(p, circle):
         c, r, n = circle
+
+        d = p - c  # vector from the center c to p
+        nd = np.dot(n, d)
+
+        if np.linalg.norm(d - n * nd) == 0:  # check if P is over n
+            return np.sqrt(r ** 2 + np.linalg.norm(d))
+
+        pq2 = nd ** 2
+        kq2 = (np.linalg.norm(np.cross(n, d)) - r) ** 2
+
+        return np.sqrt(pq2 + kq2)
+
+    @staticmethod
+    def _validate_circle(circle, point_cluster, threshold):
         votes = 0
         for p in point_cluster:
-            # if distance_to_circle(p, circle) < threshold:
-            #   votes += 1
-            pass
+            if SupportingCircle._distance_to_circle(p, circle) < threshold:
+                votes += 1
+
+        return votes
 
 
 def compute_supporting_circles(point_sets):
