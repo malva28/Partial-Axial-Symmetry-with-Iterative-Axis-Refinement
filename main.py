@@ -12,6 +12,30 @@ from fps import compute_fps
 from supporting_circles import compute_supporting_circles
 
 
+def generate_circle_node_edges(circle, n_nodes=10):
+    c, r, n = circle
+
+    # let v1, v2, n an orthonormal system
+    v1 = np.array([n[1], -n[0], 0])
+    if np.array_equal(v1, np.zeros(3)):  # n is a Z(+|-) vector, so v1 has to be calculated in another way
+        v1 = np.array([1, 0, 0])  # but any (X|Y)(+|-) will do it.
+
+    v2 = np.cross(n, v1)
+
+    # make them orthonormal
+    v1 = v1/np.linalg.norm(v1)
+    v2 = v2/np.linalg.norm(v2)
+
+    nodes = []
+    edges = []
+    for i in range(0, n_nodes):
+        theta = i * 2 * np.pi/n_nodes
+        nodes.append(c + r * (v1 * np.cos(theta) + v2 * np.sin(theta)))
+        edges.append([i, (i+1)%n_nodes])
+
+    return np.array(nodes), np.array(edges)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mesh signature visualization')
     parser.add_argument('--n_basis', default='100', type=int, help='Number of basis used')
