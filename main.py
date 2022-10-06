@@ -8,7 +8,7 @@ import trimesh
 import laplace
 import openmesh
 from signature import compute_signature
-from fps import compute_fps
+from fps import compute_fps, farthest_distance
 from supporting_circles import compute_supporting_circles
 
 
@@ -63,8 +63,12 @@ if __name__ == '__main__':
     print("(KNN) Finding Similar HKS points to the sampled points")
     nbrs = neighbors.NearestNeighbors(n_neighbors=20, algorithm='ball_tree').fit(hks)
     nbrs_distances, nbrs_indices = nbrs.kneighbors(hks[sample_indices])
+
+    # Supporting Circles
     print("Computing Supporting Circles")
-    s_circles = compute_supporting_circles(point_cloud[nbrs_indices])
+    max_dist = farthest_distance(point_cloud)  # use farthest_distance(sample_points) if that's too slow
+    s_circles = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
+
     ps.init()
 
     ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())

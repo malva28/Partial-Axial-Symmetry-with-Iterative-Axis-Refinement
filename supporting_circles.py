@@ -1,11 +1,22 @@
+import warnings
+
 import numpy as np
 from progress_bar import print_progress_bar
 
 
 class SupportingCircle:
-    def __init__(self):
+    def __init__(self, circle_candidates=500, max_dist_threshold=None):
+        """
+        Initializes a SupportingCircle object to be able to fit a supporting circle.
+        :param max_dist_threshold: Maximum distance to consider a point be part of a circle candidate
+        """
         self.supporting_circle = None
         self.votes = 0
+        self.n_candidates = circle_candidates
+        if max_dist_threshold is None:
+            warnings.warn("Warning... You should set a threshold to validate the supporting circles.")
+            max_dist_threshold = 0.05
+        self.max_dist_threshold = max_dist_threshold
 
     def get_supporting_circle(self):
         assert self.supporting_circle is not None, "The Supporting Circle hasn't been fitted with a point_set."
@@ -16,12 +27,12 @@ class SupportingCircle:
 
     def fit(self, point_set):
         circle_candidates = []
-        for _ in range(min(100, len(point_set))):
+        for _ in range(self.n_candidates):
             # ransac three points of similar_fm_points, generate circles and validate
             rand_indices = np.random.choice(len(point_set), size=3, replace=False)
             qa, qb, qc = point_set[rand_indices]
             circle = self._compute_circle_candidate(qa, qb, qc)
-            votes = self._validate_circle(circle, point_set, threshold=0.05)
+            votes = self._validate_circle(circle, point_set, self.max_dist_threshold)
             circle_candidates.append((circle, votes))
 
         self.supporting_circle, self.votes = max(circle_candidates, key=lambda c: c[1])  # the candidate with max votes
@@ -67,20 +78,28 @@ class SupportingCircle:
         return np.sqrt(pq2 + kq2)
 
     @staticmethod
-    def _validate_circle(circle, point_cluster, threshold):
+    def _validate_circle(circle, point_cluster, max_dist_threshold):
         votes = 0
         for p in point_cluster:
-            if SupportingCircle._distance_to_circle(p, circle) < threshold:
+            if SupportingCircle._distance_to_circle(p, circle) < max_dist_threshold:
                 votes += 1
 
         return votes
 
 
-def compute_supporting_circles(point_sets):
+def compute_supporting_circles(point_sets, candidates_per_circle, max_dist_threshold):
+    """
+    For each point set, calculates a supporting circle.
+    :param point_sets:
+    :param candidates_per_circle: How many candidates calculated for each supporting circle, before selecting one
+    :param max_dist_threshold:  The maximum distance to consider a point part of a circle
+    :return: A list of supporting circles, as many as point sets
+    """
     supporting_circles = []
     _ = 0
     for point_set in point_sets:
-        sc = SupportingCircle()
+        sc = SupportingCircle(circle_candidates=candidates_per_circle,
+                              max_dist_threshold=max_dist_threshold)
         supporting_circles.append(sc.fit(point_set))
         print_progress_bar(_+1, len(point_sets), prefix='Progress:', length=20)
 

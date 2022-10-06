@@ -1,8 +1,12 @@
 # https://github.com/ziruiw-dev/farthest-point-sampling
 
 import os
-import openmesh
 import numpy as np
+
+from scipy.spatial import ConvexHull
+from scipy.spatial.distance import pdist, squareform
+import openmesh
+
 from progress_bar import print_progress_bar
 
 
@@ -70,3 +74,25 @@ def compute_fps(filename, n_samples: int, pc=None):
     np.savez_compressed(str(name) + "fp_sampled" + str(n_samples) + '.npz', points=sample, indices=sample_idx)
 
     return sample, sample_idx
+
+
+def farthest_distance(points):
+    """
+    Computes the convexhull in O(nlogn), then finds the best pair in O(H^2), with H the number of points in the hull
+    :param points:
+    :return: the max distance between the points
+    """
+    hull = ConvexHull(points)
+
+    # Extract the points forming the hull
+    hull_points = points[hull.vertices, :]
+
+    # Get distance between all points in the hull and get the farthest distance
+    hull_distances = squareform(pdist(hull_points, metric='euclidean'))
+
+    # if we wanted to retrieve the indices of the pair:
+    # row, col = np.unravel_index(hull_distances.argmax(), hull_distances.shape)
+    # return hull_points[row], hull_points[col]
+
+    return np.max(hull_distances)
+
