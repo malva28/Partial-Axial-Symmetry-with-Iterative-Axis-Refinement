@@ -5,6 +5,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Cache
+*.npz
+imgui.ini
+
 # C extensions
 *.so
 
