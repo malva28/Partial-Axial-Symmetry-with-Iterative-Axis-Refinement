@@ -171,23 +171,37 @@ def adaptive_clustering_medoids(distances, n_points, min_cluster_dist, max_sprea
     return clusters
 
 
+def get_circles_of_most_populated_cluster(circles, clusters):
+    """
+    Gets the circles of the most populated cluster.
+    :param circles: Universe of circles
+    :param clusters: List of clusters of the circles
+    :return:
+    """
+
+    # get the cluster with more elements
+    max_cluster = clusters[0]
+    counts = []
+    for cluster in clusters:
+        counts.append(cluster.get_size_index())
+        if max_cluster.get_size_index() < cluster.get_size_index():
+            max_cluster = cluster
+    print(counts)
+    # retrieve its circles
+    max_cluster_circles = []
+    for idx in max_cluster.members:
+        max_cluster_circles.append(circles[idx])
+
+    return max_cluster_circles
+
+
 def compute_generator_axis(circles):
     # cluster the circles by angular distance
     angular_dists = squareform(pdist(circles, metric=angular_distance))
-    similar_angle = adaptive_clustering_medoids(angular_dists, len(circles), 0.03, 0.015, 10)
+    similar_angle_clusters = adaptive_clustering_medoids(angular_dists, len(circles), 0.03, 0.015, 10)
+    max_cluster_circles = get_circles_of_most_populated_cluster(circles, similar_angle_clusters)
 
-    clusters = similar_angle
-
-    indices = [0] * len(circles)
-    counts = [0] * len(similar_angle)
-    for i in range(len(clusters)):
-        counts[i] = clusters[i].get_size_index()
-        for j in range(clusters[i].get_size_index()):
-            indices[clusters[i].get_index(j)] = i + 1
-        print(indices)
-    print("circles", len(circles), circles)
-    print(similar_angle)
-    print(len(indices), indices)
-    print(counts)
-
+    # cluster the selected circles by axial distance
+    axial_dists = squareform(pdist(max_cluster_circles, metric=axial_distance))
+    similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), 0.01, 0.005, 10)
     pass
