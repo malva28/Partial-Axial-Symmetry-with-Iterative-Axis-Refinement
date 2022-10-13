@@ -10,6 +10,7 @@ import openmesh
 from signature import compute_signature
 from fps import compute_fps, farthest_distance
 from supporting_circles import compute_supporting_circles
+from generator_axis import compute_generator_axis
 
 
 def generate_circle_node_edges(circle, n_nodes=10):
@@ -69,6 +70,8 @@ if __name__ == '__main__':
     max_dist = farthest_distance(point_cloud)  # use farthest_distance(sample_points) if that's too slow
     s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 15, 0.005*max_dist)
 
+    # Generator axis
+    compute_generator_axis(s_circles)
 
     ps.init()
 
