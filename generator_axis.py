@@ -110,7 +110,7 @@ def axial_distance(circle_1, circle_2):
     c2, _, n2 = circle_2
 
     c_dist = c1 - c2
-    return np.abs(np.cross(n1, c_dist)) + np.abs(np.cross(n2, c_dist))
+    return np.linalg.norm(np.cross(n1, c_dist)) + np.linalg.norm(np.cross(n2, c_dist))
 
 
 def adaptive_clustering_medoids(distances, n_points, min_cluster_dist, max_spread, min_cluster_elements):
