@@ -67,7 +67,8 @@ if __name__ == '__main__':
     # Supporting Circles
     print("Computing Supporting Circles")
     max_dist = farthest_distance(point_cloud)  # use farthest_distance(sample_points) if that's too slow
-    s_circles = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
+    s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 15, 0.005*max_dist)
+
 
     ps.init()
 
@@ -77,12 +78,12 @@ if __name__ == '__main__':
     ps_cloud = ps.register_point_cloud("sample points", sample_points)
     ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[10]])
 
-    circle_centers = np.array([s_circle[0][0] for s_circle in s_circles])
+    circle_centers = np.array([s_circle[0] for s_circle in s_circles])
     ps_circle_centers = ps.register_point_cloud("Supporting Circle Centers", circle_centers)
 
     for i in range(len(s_circles)):
-        circle_nodes, circle_edges = generate_circle_node_edges(s_circles[i][0])
-        ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles[i][1]}", circle_nodes, circle_edges, radius=0.001)
-        ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle[0][2] for s_circle in s_circles]))
+        circle_nodes, circle_edges = generate_circle_node_edges(s_circles[i])
+        ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles_votes[i]}", circle_nodes, circle_edges, radius=0.001)
+        ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle[2] for s_circle in s_circles]))
 
     ps.show()
