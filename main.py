@@ -13,6 +13,32 @@ from supporting_circles import compute_supporting_circles
 from generator_axis import compute_generator_axis
 
 
+def normalize(points):
+
+    # Find box-hull diagonal extremes
+    (min_x, max_x) = (np.infty, -np.infty)
+    (min_y, max_y) = (np.infty, -np.infty)
+    (min_z, max_z) = (np.infty, -np.infty)
+    for point in points:
+        min_x = point[0] if point[0] < min_x else min_x
+        min_y = point[1] if point[1] < min_y else min_y
+        min_z = point[2] if point[2] < min_z else min_z
+
+        max_x = point[0] if point[0] > max_x else max_x
+        max_y = point[1] if point[1] > max_y else max_y
+        max_z = point[2] if point[2] > max_z else max_z
+
+    # re-center to (0, 0, 0)
+    center = [(min_x + max_x)/2, (min_y + max_y)/2, (min_z + max_z)/2]
+    for point in points:
+        point -= center
+
+    # Scale by 1/box_diagonal
+    distance = np.linalg.norm([max_x - min_x, max_y - min_y, max_z - min_z])
+    for point in points:
+        point /= distance
+
+
 def generate_circle_node_edges(circle, n_nodes=10):
     c, r, n = circle
 
@@ -32,7 +58,7 @@ def generate_circle_node_edges(circle, n_nodes=10):
     for i in range(0, n_nodes):
         theta = i * 2 * np.pi/n_nodes
         nodes.append(c + r * (v1 * np.cos(theta) + v2 * np.sin(theta)))
-        edges.append([i, (i+1)%n_nodes])
+        edges.append([i, (i+1) % n_nodes])
 
     return np.array(nodes), np.array(edges)
 
@@ -45,8 +71,12 @@ if __name__ == '__main__':
     parser.add_argument('--file', default='cat0.off', type=str, help='File to use')
     args = parser.parse_args()
 
+    np.random.seed(123)
+
     print("Reading Mesh")
     mesh = openmesh.read_trimesh(args.file)
+    point_cloud = mesh.points()
+    normalize(point_cloud)
 
     # Signature extraction
     print("Computing Signatures")
@@ -55,7 +85,6 @@ if __name__ == '__main__':
 
     # FPS
     print("FPSampling")
-    point_cloud = mesh.points()
     sample_points, sample_indices = compute_fps(args.file,
                                                 min(point_cloud.shape[0], max(point_cloud.shape[0]//200, 30)),
                                                 pc=point_cloud)
@@ -68,7 +97,7 @@ if __name__ == '__main__':
     # Supporting Circles
     print("Computing Supporting Circles")
     max_dist = farthest_distance(point_cloud)  # use farthest_distance(sample_points) if that's too slow
-    s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 15, 0.005*max_dist)
+    s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
 
     # Generator axis
     compute_generator_axis(s_circles)
