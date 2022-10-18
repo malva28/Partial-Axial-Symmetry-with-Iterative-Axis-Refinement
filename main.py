@@ -100,8 +100,7 @@ if __name__ == '__main__':
     s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
 
     # Generator axis
-    compute_generator_axis(s_circles)
-
+    s_circles, generator_circle = compute_generator_axis(s_circles)
     ps.init()
 
     ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
@@ -117,5 +116,10 @@ if __name__ == '__main__':
         circle_nodes, circle_edges = generate_circle_node_edges(s_circles[i])
         ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles_votes[i]}", circle_nodes, circle_edges, radius=0.001)
         ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle[2] for s_circle in s_circles]))
+
+    circle_nodes, circle_edges = generate_circle_node_edges(generator_circle)
+    ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.005)
+    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle[0]]))
+    ps_generator_center.add_vector_quantity("Normal", np.array([generator_circle[2]]))
 
     ps.show()

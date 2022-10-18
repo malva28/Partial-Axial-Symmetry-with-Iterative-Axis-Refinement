@@ -195,6 +195,18 @@ def get_circles_of_most_populated_cluster(circles, clusters):
     return max_cluster_circles
 
 
+def circle_average(circles):
+    c_avg, r_avg, n_avg = np.array([0, 0, 0], dtype=float), 0, np.array([0, 0, 0], dtype=float)
+    for c, r, n in circles:
+        c_avg += c
+        r_avg += r
+        n_avg += n
+    c_avg /= len(circles)
+    r_avg /= len(circles)
+    n_avg /= len(circles)
+    return c_avg, r_avg, n_avg
+
+
 def compute_generator_axis(circles):
     # cluster the circles by angular distance
     angular_dists = squareform(pdist(circles, metric=angular_distance))
@@ -203,5 +215,8 @@ def compute_generator_axis(circles):
 
     # cluster the selected circles by axial distance
     axial_dists = squareform(pdist(max_cluster_circles, metric=axial_distance))
-    similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), 0.01, 0.005, 10)
-    pass
+    print(axial_dists)
+    similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), 0.5, 0.25, 5)
+    max_cluster_circles = get_circles_of_most_populated_cluster(max_cluster_circles, similar_axis_clusters)
+
+    return max_cluster_circles, circle_average(max_cluster_circles)  # WIP, should only return the circle_average
