@@ -96,13 +96,16 @@ def compute_supporting_circles(point_sets, candidates_per_circle, max_dist_thres
     :return: A list of supporting circles, as many as point sets
     """
     supporting_circles = []
+    votes = []
     _ = 0
     for point_set in point_sets:
         sc = SupportingCircle(circle_candidates=candidates_per_circle,
                               max_dist_threshold=max_dist_threshold)
-        supporting_circles.append(sc.fit(point_set))
+        s_circle = sc.fit(point_set)
+        supporting_circles.append(s_circle[0])
+        votes.append(s_circle[1])
         print_progress_bar(_+1, len(point_sets), prefix='Progress:', length=20)
 
         _ += 1
 
-    return supporting_circles
+    return supporting_circles, votes

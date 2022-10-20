@@ -10,6 +10,33 @@ import openmesh
 from signature import compute_signature
 from fps import compute_fps, farthest_distance
 from supporting_circles import compute_supporting_circles
+from generator_axis import compute_generator_axis
+
+
+def normalize(points):
+
+    # Find box-hull diagonal extremes
+    (min_x, max_x) = (np.infty, -np.infty)
+    (min_y, max_y) = (np.infty, -np.infty)
+    (min_z, max_z) = (np.infty, -np.infty)
+    for point in points:
+        min_x = point[0] if point[0] < min_x else min_x
+        min_y = point[1] if point[1] < min_y else min_y
+        min_z = point[2] if point[2] < min_z else min_z
+
+        max_x = point[0] if point[0] > max_x else max_x
+        max_y = point[1] if point[1] > max_y else max_y
+        max_z = point[2] if point[2] > max_z else max_z
+
+    # re-center to (0, 0, 0)
+    center = [(min_x + max_x)/2, (min_y + max_y)/2, (min_z + max_z)/2]
+    for point in points:
+        point -= center
+
+    # Scale by 1/box_diagonal
+    distance = np.linalg.norm([max_x - min_x, max_y - min_y, max_z - min_z])
+    for point in points:
+        point /= distance
 
 
 def generate_circle_node_edges(circle, n_nodes=10):
@@ -31,7 +58,7 @@ def generate_circle_node_edges(circle, n_nodes=10):
     for i in range(0, n_nodes):
         theta = i * 2 * np.pi/n_nodes
         nodes.append(c + r * (v1 * np.cos(theta) + v2 * np.sin(theta)))
-        edges.append([i, (i+1)%n_nodes])
+        edges.append([i, (i+1) % n_nodes])
 
     return np.array(nodes), np.array(edges)
 
@@ -42,10 +69,16 @@ if __name__ == '__main__':
     parser.add_argument('--approx', default='cotangens', choices=laplace.approx_methods(), type=str,
                         help='Laplace approximation to use')
     parser.add_argument('--file', default='cat0.off', type=str, help='File to use')
+    parser.add_argument('--no-visual', default=False, action='store_false', help="True if you don't want to ")
+
     args = parser.parse_args()
+
+    np.random.seed(123)
 
     print("Reading Mesh")
     mesh = openmesh.read_trimesh(args.file)
+    point_cloud = mesh.points()
+    normalize(point_cloud)
 
     # Signature extraction
     print("Computing Signatures")
@@ -54,7 +87,6 @@ if __name__ == '__main__':
 
     # FPS
     print("FPSampling")
-    point_cloud = mesh.points()
     sample_points, sample_indices = compute_fps(args.file,
                                                 min(point_cloud.shape[0], max(point_cloud.shape[0]//200, 30)),
                                                 pc=point_cloud)
@@ -66,8 +98,14 @@ if __name__ == '__main__':
 
     # Supporting Circles
     print("Computing Supporting Circles")
-    max_dist = farthest_distance(point_cloud)  # use farthest_distance(sample_points) if that's too slow
-    s_circles = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
+    max_dist = 1  # As the object is normalized to 1, we can use that
+    s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
+
+    # Generator axis
+    s_circles, generator_circle = compute_generator_axis(s_circles)
+
+    if args.no_visual:
+        exit(0)
 
     ps.init()
 
@@ -77,12 +115,17 @@ if __name__ == '__main__':
     ps_cloud = ps.register_point_cloud("sample points", sample_points)
     ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[10]])
 
-    circle_centers = np.array([s_circle[0][0] for s_circle in s_circles])
+    circle_centers = np.array([s_circle[0] for s_circle in s_circles])
     ps_circle_centers = ps.register_point_cloud("Supporting Circle Centers", circle_centers)
 
     for i in range(len(s_circles)):
-        circle_nodes, circle_edges = generate_circle_node_edges(s_circles[i][0])
-        ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles[i][1]}", circle_nodes, circle_edges, radius=0.001)
-        ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle[0][2] for s_circle in s_circles]))
+        circle_nodes, circle_edges = generate_circle_node_edges(s_circles[i])
+        ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles_votes[i]}", circle_nodes, circle_edges, radius=0.001)
+        ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle[2] for s_circle in s_circles]))
+
+    circle_nodes, circle_edges = generate_circle_node_edges(generator_circle)
+    ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.005)
+    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle[0]]))
+    ps_generator_center.add_vector_quantity("Normal", np.array([generator_circle[2]]))
 
     ps.show()
