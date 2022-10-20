@@ -69,6 +69,8 @@ if __name__ == '__main__':
     parser.add_argument('--approx', default='cotangens', choices=laplace.approx_methods(), type=str,
                         help='Laplace approximation to use')
     parser.add_argument('--file', default='cat0.off', type=str, help='File to use')
+    parser.add_argument('--no-visual', default=False, action='store_false', help="True if you don't want to ")
+
     args = parser.parse_args()
 
     np.random.seed(123)
@@ -101,6 +103,9 @@ if __name__ == '__main__':
 
     # Generator axis
     s_circles, generator_circle = compute_generator_axis(s_circles)
+
+    if args.no_visual:
+        exit(0)
     ps.init()
 
     ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
