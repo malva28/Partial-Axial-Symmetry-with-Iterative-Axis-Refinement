@@ -1,5 +1,6 @@
 import argparse
 import os
+from sys import exit
 import numpy as np
 from sklearn import neighbors
 
@@ -69,42 +70,55 @@ if __name__ == '__main__':
     parser.add_argument('--approx', default='cotangens', choices=laplace.approx_methods(), type=str,
                         help='Laplace approximation to use')
     parser.add_argument('--file', default='cat0.off', type=str, help='File to use')
-    parser.add_argument('--no-visual', default=False, action='store_false', help="True if you don't want to ")
+    parser.add_argument('--visual', default=True, action='store_true', help="True if you want to ")
+    parser.add_argument('--no-visual', dest='visual', action='store_false')
 
     args = parser.parse_args()
 
-    np.random.seed(123)
+    try:
+        np.random.seed(123)
 
-    print("Reading Mesh")
-    mesh = openmesh.read_trimesh(args.file)
-    point_cloud = mesh.points()
-    normalize(point_cloud)
+        print("Reading Mesh")
+        mesh = openmesh.read_trimesh(args.file)
+        point_cloud = mesh.points()
+        normalize(point_cloud)
 
-    # Signature extraction
-    print("Computing Signatures")
-    signature_extractor = compute_signature(args.file, args)
-    hks = signature_extractor.heat_signatures(10)
+        # Signature extraction
+        print("Computing Signatures")
+        signature_extractor = compute_signature(args.file, args)
+        hks = signature_extractor.heat_signatures(10)
 
-    # FPS
-    print("FPSampling")
-    sample_points, sample_indices = compute_fps(args.file,
-                                                min(point_cloud.shape[0], max(point_cloud.shape[0]//200, 30)),
-                                                pc=point_cloud)
+        sum = np.sum(hks)
+        print("Is nan?:", np.isnan(sum))
 
-    # knn
-    print("(KNN) Finding Similar HKS points to the sampled points")
-    nbrs = neighbors.NearestNeighbors(n_neighbors=20, algorithm='ball_tree').fit(hks)
-    nbrs_distances, nbrs_indices = nbrs.kneighbors(hks[sample_indices])
+        # FPS
+        print("FPSampling")
+        sample_points, sample_indices = compute_fps(args.file,
+                                                    min(point_cloud.shape[0], max(point_cloud.shape[0]//200, 30)),
+                                                    pc=point_cloud)
 
-    # Supporting Circles
-    print("Computing Supporting Circles")
-    max_dist = 1  # As the object is normalized to 1, we can use that
-    s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
+        # knn
+        print("(KNN) Finding Similar HKS points to the sampled points")
+        nbrs = neighbors.NearestNeighbors(n_neighbors=20, algorithm='ball_tree').fit(hks)
+        nbrs_distances, nbrs_indices = nbrs.kneighbors(hks[sample_indices])
 
-    # Generator axis
-    s_circles, generator_circle = compute_generator_axis(s_circles)
+        # Supporting Circles
+        print("Computing Supporting Circles")
+        max_dist = 1  # As the object is normalized to 1, we can use that
+        s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
 
-    if args.no_visual:
+        # Generator axis
+        s_circles, generator_circle = compute_generator_axis(s_circles)
+
+        with open("log.txt", "a") as logf:
+            logf.write(args.file + ", " + "0" + ", \n")
+    except Exception as e:
+        with open("log.txt", "a") as logf:
+            logf.write(args.file + ", " + "1" + ", " + e.__class__.__name__ + "\n")
+        exit(0)
+
+    if not args.visual:
+        print("no visual")
         exit(0)
 
     ps.init()
