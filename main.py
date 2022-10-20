@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     # Supporting Circles
     print("Computing Supporting Circles")
-    max_dist = farthest_distance(point_cloud)  # use farthest_distance(sample_points) if that's too slow
+    max_dist = 1  # As the object is normalized to 1, we can use that
     s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
 
     # Generator axis
@@ -106,6 +106,7 @@ if __name__ == '__main__':
 
     if args.no_visual:
         exit(0)
+
     ps.init()
 
     ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
