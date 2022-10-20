@@ -329,11 +329,12 @@ def compute_signature(filename, args):
         SignatureExtractor
     """
     name = os.path.splitext(filename)[0]
-    if os.path.exists(name + '.npz'):
-        extractor = SignatureExtractor(path=name + '.npz')
+    path = os.path.join('data', name + '.npz')
+    if os.path.exists(path):
+        extractor = SignatureExtractor(path=path)
     else:
         mesh = trimesh.load(filename)
         extractor = SignatureExtractor(mesh, args.n_basis, args.approx)
-        np.savez_compressed(name + '.npz', evals=extractor.evals, evecs=extractor.evecs)
+        np.savez_compressed(path, evals=extractor.evals, evecs=extractor.evecs)
 
     return extractor

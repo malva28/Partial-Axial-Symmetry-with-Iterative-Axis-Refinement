@@ -59,8 +59,9 @@ class FPS:
 
 def compute_fps(filename, n_samples: int, pc=None):
     name = os.path.splitext(filename)[0]
-    if os.path.exists(str(name) + "fp_sampled" + str(n_samples) + '.npz'):
-        data = np.load(str(name) + "fp_sampled" + str(n_samples) + '.npz')
+    path = os.path.join('data', str(name) + "fp_sampled" + str(n_samples) + '.npz')
+    if os.path.exists(path):
+        data = np.load(path)
         return data['points'], data['indices']
 
     if pc is None:
@@ -71,7 +72,7 @@ def compute_fps(filename, n_samples: int, pc=None):
                                                                            n_samples))
     sample, sample_idx = sample_fps.fit()  # Get all samples.
     print("FPS sampling finished.")
-    np.savez_compressed(str(name) + "fp_sampled" + str(n_samples) + '.npz', points=sample, indices=sample_idx)
+    np.savez_compressed(path, points=sample, indices=sample_idx)
 
     return sample, sample_idx
 
