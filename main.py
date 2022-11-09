@@ -12,32 +12,7 @@ from signature import compute_signature
 from fps import compute_fps, farthest_distance
 from supporting_circles import compute_supporting_circles
 from generator_axis import compute_generator_axis
-
-
-def normalize(points):
-
-    # Find box-hull diagonal extremes
-    (min_x, max_x) = (np.infty, -np.infty)
-    (min_y, max_y) = (np.infty, -np.infty)
-    (min_z, max_z) = (np.infty, -np.infty)
-    for point in points:
-        min_x = point[0] if point[0] < min_x else min_x
-        min_y = point[1] if point[1] < min_y else min_y
-        min_z = point[2] if point[2] < min_z else min_z
-
-        max_x = point[0] if point[0] > max_x else max_x
-        max_y = point[1] if point[1] > max_y else max_y
-        max_z = point[2] if point[2] > max_z else max_z
-
-    # re-center to (0, 0, 0)
-    center = [(min_x + max_x)/2, (min_y + max_y)/2, (min_z + max_z)/2]
-    for point in points:
-        point -= center
-
-    # Scale by 1/box_diagonal
-    distance = np.linalg.norm([max_x - min_x, max_y - min_y, max_z - min_z])
-    for point in points:
-        point /= distance
+from transformations import normalize
 
 
 def generate_circle_node_edges(circle, n_nodes=10):
@@ -69,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument('--n_basis', default='100', type=int, help='Number of basis used')
     parser.add_argument('--approx', default='cotangens', choices=laplace.approx_methods(), type=str,
                         help='Laplace approximation to use')
-    parser.add_argument('--file', default='cat0.off', type=str, help='File to use')
+    parser.add_argument('--file', default='files/cat0.off', type=str, help='File to use')
     parser.add_argument('--visual', default=True, action='store_true', help="True if you want to ")
     parser.add_argument('--no-visual', dest='visual', action='store_false')
 
@@ -113,8 +88,15 @@ if __name__ == '__main__':
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "0" + ", \n")
     except Exception as e:
+        print(e)
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "1" + ", " + e.__class__.__name__ + "\n")
+        #ps.init()
+        #ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
+        #print(hks.shape)
+        #ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
+        #ps.show()
+
         exit(0)
 
     if not args.visual:
