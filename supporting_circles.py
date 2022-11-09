@@ -4,6 +4,36 @@ import numpy as np
 from progress_bar import print_progress_bar
 
 
+class Circle:
+    def __init__(self, center, radius, normal):
+        self.c = center
+        self.r = radius
+        self.n = normal
+
+    def get_phi(self):
+        """
+        Gets the azimuthal angle of the circle's normal (rotation from the initial meridian plane in spherical coords)
+        :return:
+        """
+        x, y, z = self.n
+        return np.arctan(y/x)
+
+    def get_theta(self):
+        """
+        Gets the polar angle of the circle's normal (inclination from respect to the polar axis z)
+        :return:
+        """
+        x, y, z = self.n
+        return np.arccos(z)
+
+    def get_c_r_n_tuple(self):
+        """
+        Gets the center, radius and normal in a 3-tuple
+        :return:
+        """
+        return self.c, self.r, self.n
+
+
 class SupportingCircle:
     def __init__(self, circle_candidates=500, max_dist_threshold=None):
         """
@@ -39,7 +69,7 @@ class SupportingCircle:
         return self.supporting_circle, self.votes
 
     @staticmethod
-    def _compute_circle_candidate(a, b, c):
+    def _compute_circle_candidate(a, b, c) -> Circle:
         # vectors ab and ac
         v1 = b - a
         v2 = c - a
@@ -60,11 +90,11 @@ class SupportingCircle:
         normal = np.cross(v1, v2)
         normal = normal/np.linalg.norm(normal)
 
-        return center, radius, normal
+        return Circle(center, radius, normal)
 
     @staticmethod
-    def _distance_to_circle(p, circle):
-        c, r, n = circle
+    def _distance_to_circle(p, circle: Circle):
+        c, r, n = circle.get_c_r_n_tuple()
 
         d = p - c  # vector from the center c to p
         nd = np.dot(n, d)
@@ -78,7 +108,7 @@ class SupportingCircle:
         return np.sqrt(pq2 + kq2)
 
     @staticmethod
-    def _validate_circle(circle, point_cluster, max_dist_threshold):
+    def _validate_circle(circle: Circle, point_cluster, max_dist_threshold):
         votes = 0
         for p in point_cluster:
             if SupportingCircle._distance_to_circle(p, circle) < max_dist_threshold:
@@ -101,9 +131,9 @@ def compute_supporting_circles(point_sets, candidates_per_circle, max_dist_thres
     for point_set in point_sets:
         sc = SupportingCircle(circle_candidates=candidates_per_circle,
                               max_dist_threshold=max_dist_threshold)
-        s_circle = sc.fit(point_set)
-        supporting_circles.append(s_circle[0])
-        votes.append(s_circle[1])
+        s_circle, s_circle_votes = sc.fit(point_set)
+        supporting_circles.append(s_circle)
+        votes.append(s_circle_votes)
         print_progress_bar(_+1, len(point_sets), prefix='Progress:', length=20)
 
         _ += 1

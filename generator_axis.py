@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
+from supporting_circles import Circle
 
 
 class ClusterPoint:
@@ -217,19 +218,23 @@ def get_circles_of_most_populated_cluster(circles, clusters):
     return max_cluster_circles
 
 
-def circle_average(circles):
+def circle_average(circles: list[Circle]):
     c_avg, r_avg, n_avg = np.array([0, 0, 0], dtype=float), 0, np.array([0, 0, 0], dtype=float)
-    for c, r, n in circles:
+    for circle in circles:
+        c, r, n = circle.get_c_r_n_tuple()
         c_avg += c
         r_avg += r
         n_avg += n
     c_avg /= len(circles)
     r_avg /= len(circles)
     n_avg /= len(circles)
-    return c_avg, r_avg, n_avg
+    return Circle(c_avg, r_avg, n_avg)
 
 
-def compute_generator_axis(circles):
+def compute_generator_axis(circles: list[Circle]):
+    # transform the 1-D list of circles into a 2-D array
+    circles = np.array([circle.get_c_r_n_tuple() for circle in circles])
+
     # cluster the circles by angular distance
     angular_dists = squareform(pdist(circles, metric=angular_distance))
     similar_angle_clusters = adaptive_clustering_medoids(angular_dists, len(circles), 0.03, 0.015, 10)
@@ -241,4 +246,6 @@ def compute_generator_axis(circles):
     similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), 0.5, 0.25, 5)
     max_cluster_circles = get_circles_of_most_populated_cluster(max_cluster_circles, similar_axis_clusters)
 
+    # transform back the 2-D array into a 1-D list of circles
+    max_cluster_circles = [Circle(circle[0], circle[1], circle[2]) for circle in max_cluster_circles]
     return max_cluster_circles, circle_average(max_cluster_circles)  # WIP, should only return the circle_average

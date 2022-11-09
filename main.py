@@ -10,13 +10,13 @@ import laplace
 import openmesh
 from signature import compute_signature
 from fps import compute_fps, farthest_distance
-from supporting_circles import compute_supporting_circles
+from supporting_circles import compute_supporting_circles, Circle
 from generator_axis import compute_generator_axis
 from transformations import normalize
 
 
-def generate_circle_node_edges(circle, n_nodes=10):
-    c, r, n = circle
+def generate_circle_node_edges(circle: Circle, n_nodes=10):
+    c, r, n = circle.get_c_r_n_tuple()
 
     # let v1, v2, n an orthonormal system
     v1 = np.array([n[1], -n[0], 0])
@@ -111,25 +111,25 @@ if __name__ == '__main__':
     ps_cloud = ps.register_point_cloud("sample points", sample_points)
     ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[10]])
 
-    circle_centers = np.array([s_circle[0] for s_circle in s_circles])
+    circle_centers = np.array([s_circle.c for s_circle in s_circles])
     ps_circle_centers = ps.register_point_cloud("Supporting Circle Centers", circle_centers)
 
     for i in range(len(s_circles)):
         circle_nodes, circle_edges = generate_circle_node_edges(s_circles[i])
         ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles_votes[i]}", circle_nodes, circle_edges, radius=0.001)
-        ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle[2] for s_circle in s_circles]))
+        ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle.n for s_circle in s_circles]))
 
     ps_best_circle_centers = ps.register_point_cloud(
         "Best Circle Centers",
-        np.array([s_circle[0] for s_circle in best_s_circles]))
+        np.array([s_circle.c for s_circle in best_s_circles]))
     for i in range(len(best_s_circles)):
         circle_nodes, circle_edges = generate_circle_node_edges(best_s_circles[i])
         ps.register_curve_network(f"Best circle {i+1:03d}", circle_nodes, circle_edges, radius=0.003)
-        ps_best_circle_centers.add_vector_quantity("Normal", np.array([s_circle[2] for s_circle in best_s_circles]))
+        ps_best_circle_centers.add_vector_quantity("Normal", np.array([s_circle.n for s_circle in best_s_circles]))
 
     circle_nodes, circle_edges = generate_circle_node_edges(generator_circle)
     ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.01)
-    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle[0]]))
-    ps_generator_center.add_vector_quantity("Normal", np.array([generator_circle[2]]))
+    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle.c]))
+    ps_generator_center.add_vector_quantity("Normal", np.array([generator_circle.n]))
 
     ps.show()
