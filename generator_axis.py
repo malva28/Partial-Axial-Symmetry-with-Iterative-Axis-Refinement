@@ -56,6 +56,12 @@ class Cluster:
             points.append(self.points[i])
 
     def remove_indices(self, marks: list[int]):
+        """
+        Unmark the cluster's points from a list of marked points,
+        using the original index in the set of un-clustered elements.
+
+        :param marks: A marking list, with length of the number of elements in the un-clustered set
+        """
         for i in range(len(self.members)):
             marks[self.members[i]] = 0
 
@@ -113,18 +119,32 @@ def axial_distance(circle_1, circle_2):
     return np.linalg.norm(np.cross(n1, c_dist)) + np.linalg.norm(np.cross(n2, c_dist))
 
 
-def adaptive_clustering_medoids(distances, n_points, min_cluster_dist, max_spread, min_cluster_elements):
+def adaptive_clustering_medoids(distances, n_points, r, s, min_cluster_elements):
+    """
+    Customized clustering algorithm. Uses a matrix distance between points to form clusters.
+    Points near enough to an existing cluster will be considered part of it.
+    Points far enough to the nearest cluster will create a new cluster.
+    Points with neither of those conditions will be not part of any cluster, discarding possible noise between clusters.
+
+    Runs this algorithm a few times over the un-clustered points, and discarding clusters with few elements.
+
+    :param distances: Distance-matrix between the un-clustered n_points
+    :param n_points: Number of un-clustered points to clusterize
+    :param r: Maximum distance point-centroid to be considered part of a cluster
+    :param s: Minimum distance to a distant point to form a new cluster.
+    :param min_cluster_elements: Minimum number of points that a cluster must have to be considered a proper cluster.
+    :return: The set of clusters
+    """
     clusters = []
 
     mark = [0] * n_points
 
     Iter = 10
     for _ in range(Iter):
-        deleted = []
 
         # for each point p
         for i in range(n_points):
-            if mark[i]:
+            if mark[i]:  # Ignore points that are already in clusters
                 continue
 
             min_dist = np.inf
@@ -138,35 +158,37 @@ def adaptive_clustering_medoids(distances, n_points, min_cluster_dist, max_sprea
                     min_dist = dist
                     nearest_cluster_idx = j
 
-            if min_dist == np.inf or min_dist >= max_spread:
+            if min_dist >= s:
+                # Point too far away of the closest cluster
+                # Create a new cluster and remove the point (adds it to the deleted list, to remove it later)
                 clu = Cluster()
                 clu.add_idx(i)
                 clu.compute_medoid(distances, n_points)
                 clusters.append(clu)
-                deleted.append(i)
-            elif min_dist <= min_cluster_dist:
+                mark[i] = 1
+            elif min_dist <= r:
+                # Point close enough to be considered part of the cluster
+                # Append it to the cluster, and remove it from
                 clusters[nearest_cluster_idx].add_idx(i)
-                deleted.append(i)
+                mark[i] = 1
             else:
+                # between r and s, the point is not close enough to be part of a cluster,
+                # but not too far away to form a new one
                 print("Else")
 
-        print("Iter:", _, "-> Num. clusters:", len(clusters))
-
-        deleted.reverse()
-        for deleted_idx in deleted:
-            mark[deleted_idx] = 1
-        deleted.clear()
-
+        delete_mark = [0] * len(clusters)
+        # Validate clusters
         for i in range(len(clusters)):
             if clusters[i].get_size_index() >= min_cluster_elements:
                 clusters[i].compute_medoid(distances, n_points)
             else:
+                # Not enough points in this cluster, unmark its points and remove the cluster
                 clusters[i].remove_indices(mark)
-                deleted.append(i)
+                delete_mark[i] = 1
 
-        deleted.reverse()
-        for deleted_idx in deleted:
-            clusters.pop(deleted_idx)
+        print("Iter:", _, "-> Num. clusters:", len(clusters), ", removing", delete_mark.count(1))
+        # Filter the deleted clusters
+        clusters = [clusters[i] for i in range(len(clusters)) if not delete_mark[i]]
 
     return clusters
 
@@ -186,7 +208,7 @@ def get_circles_of_most_populated_cluster(circles, clusters):
         counts.append(cluster.get_size_index())
         if max_cluster.get_size_index() < cluster.get_size_index():
             max_cluster = cluster
-    print(counts)
+    # print(counts)
     # retrieve its circles
     max_cluster_circles = []
     for idx in max_cluster.members:
