@@ -8,6 +8,10 @@ __pycache__/
 # Cache
 *.npz
 imgui.ini
+.polyscope.ini
+
+# Logs
+log.txt
 
 # Objects
 *.off
