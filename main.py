@@ -83,7 +83,7 @@ if __name__ == '__main__':
         s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
 
         # Generator axis
-        s_circles, generator_circle = compute_generator_axis(s_circles)
+        best_s_circles, generator_circle = compute_generator_axis(s_circles)
 
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "0" + ", \n")
@@ -119,8 +119,16 @@ if __name__ == '__main__':
         ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles_votes[i]}", circle_nodes, circle_edges, radius=0.001)
         ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle[2] for s_circle in s_circles]))
 
+    ps_best_circle_centers = ps.register_point_cloud(
+        "Best Circle Centers",
+        np.array([s_circle[0] for s_circle in best_s_circles]))
+    for i in range(len(best_s_circles)):
+        circle_nodes, circle_edges = generate_circle_node_edges(best_s_circles[i])
+        ps.register_curve_network(f"Best circle {i+1:03d}", circle_nodes, circle_edges, radius=0.003)
+        ps_best_circle_centers.add_vector_quantity("Normal", np.array([s_circle[2] for s_circle in best_s_circles]))
+
     circle_nodes, circle_edges = generate_circle_node_edges(generator_circle)
-    ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.005)
+    ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.01)
     ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle[0]]))
     ps_generator_center.add_vector_quantity("Normal", np.array([generator_circle[2]]))
 
