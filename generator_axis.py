@@ -240,13 +240,13 @@ def compute_generator_axis(circles: list[Circle]):
 
     # cluster the circles by angular distance
     angular_dists = squareform(pdist(circles, metric=angular_distance))
-    similar_angle_clusters = adaptive_clustering_medoids(angular_dists, len(circles), 0.03, 0.015, 10)
+    similar_angle_clusters = adaptive_clustering_medoids(angular_dists, len(circles), 0.015, 0.03, 10)
     max_cluster_circles = get_circles_of_most_populated_cluster(circles, similar_angle_clusters)
 
     # cluster the selected circles by axial distance
     axial_dists = squareform(pdist(max_cluster_circles, metric=axial_distance))
-    print(axial_dists)
-    similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), 0.5, 0.25, 5)
+    # print(axial_dists)
+    similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), 0.25, 0.5, 5)
     max_cluster_circles = get_circles_of_most_populated_cluster(max_cluster_circles, similar_axis_clusters)
 
     # transform back the 2-D array into a 1-D list of circles
