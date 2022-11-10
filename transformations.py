@@ -27,9 +27,6 @@ def normalize(points):
     distance = np.linalg.norm(extreme_1 - extreme_2)
     for point in points:
         point /= distance
-    print("End normalization")
-    extreme_1, extreme_2 = get_bounding_box_extremes(points)
-    print(extreme_1, extreme_2, np.linalg.norm(extreme_2 - extreme_1))
 
 
 def recenter(points, new_center):

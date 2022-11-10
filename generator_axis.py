@@ -175,7 +175,7 @@ def adaptive_clustering_medoids(distances, n_points, r, s, min_cluster_elements)
             else:
                 # between r and s, the point is not close enough to be part of a cluster,
                 # but not too far away to form a new one
-                print("Else")
+                pass
 
         delete_mark = [0] * len(clusters)
         # Validate clusters

@@ -9,7 +9,7 @@ import trimesh
 import laplace
 import openmesh
 from signature import compute_signature
-from fps import compute_fps, farthest_distance
+from fps import compute_fps
 from supporting_circles import compute_supporting_circles, Circle
 from generator_axis import compute_generator_axis
 from transformations import normalize
@@ -63,8 +63,7 @@ if __name__ == '__main__':
         signature_extractor = compute_signature(args.file, args)
         hks = signature_extractor.heat_signatures(10)
 
-        sum = np.sum(hks)
-        print("Is nan?:", np.isnan(sum))
+        print("Is nan?:", np.isnan(np.sum(hks)))
 
         # FPS
         print("FPSampling")
