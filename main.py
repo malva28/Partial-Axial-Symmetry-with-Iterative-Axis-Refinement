@@ -86,6 +86,23 @@ if __name__ == '__main__':
 
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "0" + ", \n")
+    except ValueError as e:
+        print(e)
+        with open("log.txt", "a") as logf:
+            logf.write(args.file + ", " + "1" + ", " + e.__class__.__name__ + "\n")
+
+        # clear .npz
+        name = os.path.splitext(args.file)[0]
+        path = os.path.join('data', name + '.npz')
+        if os.path.exists(path):
+            os.remove(path)
+        path = os.path.join('data', str(name) + "fp_sampled" +
+                            str(min(point_cloud.shape[0], max(point_cloud.shape[0] // 200, 30))) + '.npz')
+        if os.path.exists(path):
+            os.remove(path)
+
+        exit(0)
+
     except Exception as e:
         print(e)
         with open("log.txt", "a") as logf:
