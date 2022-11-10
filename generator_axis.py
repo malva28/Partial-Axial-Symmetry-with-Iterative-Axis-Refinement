@@ -224,10 +224,13 @@ def circle_average(circles: list[Circle]):
         c, r, n = circle.get_c_r_n_tuple()
         c_avg += c
         r_avg += r
-        n_avg += n
+        # simply adding same-orientation different-sense vectors result in cancelling important vectors
+        # so, we make them all positive in x-axis
+        n_avg += n if n[0] >= 0 else -n
+
     c_avg /= len(circles)
     r_avg /= len(circles)
-    n_avg /= len(circles)
+    n_avg /= np.linalg.norm(n_avg)
     return Circle(c_avg, r_avg, n_avg)
 
 
