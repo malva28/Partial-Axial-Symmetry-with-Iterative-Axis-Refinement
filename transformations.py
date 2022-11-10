@@ -1,5 +1,5 @@
 import numpy as np
-
+from supporting_circles import Circle
 
 def get_bounding_box_extremes(points):
     # Find box-hull diagonal extremes
@@ -34,5 +34,24 @@ def recenter(points, new_center):
         point -= new_center
 
 
-def reorient(points, new_axis):
-    pass
+def rotate(points, rotation_matrix):
+    for point in points:
+        point[:] = np.matmul(rotation_matrix, point)
+
+
+def reorient(points, axial_circle: Circle):
+    recenter(points, axial_circle.c)
+
+    phi = -axial_circle.get_phi()
+    theta = -axial_circle.get_theta()
+    rotation_z = np.array([
+        [np.cos(phi), -np.sin(phi), 0],
+        [np.sin(phi), np.cos(phi), 0],
+        [0, 0, 1]
+    ])
+    rotation_y = np.array([
+        [np.cos(theta), 0, np.sin(theta)],
+        [0, 1, 0],
+        [-np.sin(theta), 0, np.cos(theta)]
+    ])
+    rotate(points, np.matmul(rotation_y, rotation_z))

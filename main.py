@@ -12,7 +12,7 @@ from signature import compute_signature
 from fps import compute_fps
 from supporting_circles import compute_supporting_circles, Circle
 from generator_axis import compute_generator_axis
-from transformations import normalize
+from transformations import normalize, reorient
 
 
 def generate_circle_node_edges(circle: Circle, n_nodes=10):
@@ -102,6 +102,8 @@ if __name__ == '__main__':
         print("no visual")
         exit(0)
 
+    reorient(point_cloud, generator_circle)
+    ps.set_up_dir("z_up")
     ps.init()
 
     ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
