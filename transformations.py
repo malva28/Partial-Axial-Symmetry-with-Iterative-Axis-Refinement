@@ -39,7 +39,7 @@ def rotate(points, rotation_matrix):
         point[:] = np.matmul(rotation_matrix, point)
 
 
-def reorient(points, axial_circle: Circle):
+def reorient_point_cloud(points, axial_circle: Circle):
     recenter(points, axial_circle.c)
 
     phi = -axial_circle.get_phi()
@@ -55,3 +55,25 @@ def reorient(points, axial_circle: Circle):
         [-np.sin(theta), 0, np.cos(theta)]
     ])
     rotate(points, np.matmul(rotation_y, rotation_z))
+
+
+def reorient_circle(circle, axial_circle: Circle):
+    # recenter
+    circle.c -= axial_circle.c
+
+    # reorient
+    phi = -axial_circle.get_phi()
+    theta = -axial_circle.get_theta()
+    rotation_z = np.array([
+        [np.cos(phi), -np.sin(phi), 0],
+        [np.sin(phi), np.cos(phi), 0],
+        [0, 0, 1]
+    ])
+    rotation_y = np.array([
+        [np.cos(theta), 0, np.sin(theta)],
+        [0, 1, 0],
+        [-np.sin(theta), 0, np.cos(theta)]
+    ])
+
+    circle.n = np.matmul(np.matmul(rotation_y, rotation_z), circle.n)
+    circle.c = np.matmul(np.matmul(rotation_y, rotation_z), circle.c)

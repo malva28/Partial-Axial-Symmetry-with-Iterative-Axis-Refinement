@@ -12,7 +12,7 @@ from signature import compute_signature
 from fps import compute_fps
 from supporting_circles import compute_supporting_circles, Circle
 from generator_axis import compute_generator_axis
-from transformations import normalize, reorient
+from transformations import normalize, reorient_point_cloud, reorient_circle
 
 
 def generate_circle_node_edges(circle: Circle, n_nodes=10):
@@ -119,7 +119,12 @@ if __name__ == '__main__':
         print("no visual")
         exit(0)
 
-    reorient(point_cloud, generator_circle)
+    # reorientation
+    reorient_point_cloud(point_cloud, generator_circle)
+    for s_circle in best_s_circles:
+        reorient_circle(s_circle, generator_circle)
+    reorient_circle(generator_circle, generator_circle)
+
     ps.set_up_dir("z_up")
     ps.init()
 
@@ -127,8 +132,10 @@ if __name__ == '__main__':
     ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
 
     ps_cloud = ps.register_point_cloud("sample points", sample_points)
-    ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[10]])
+    # ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[10]])
 
+    # All supporting circles
+    """
     circle_centers = np.array([s_circle.c for s_circle in s_circles])
     ps_circle_centers = ps.register_point_cloud("Supporting Circle Centers", circle_centers)
 
@@ -136,7 +143,10 @@ if __name__ == '__main__':
         circle_nodes, circle_edges = generate_circle_node_edges(s_circles[i])
         ps.register_curve_network(f"Supporting Circle {i+1:03d}, votes:{s_circles_votes[i]}", circle_nodes, circle_edges, radius=0.001)
         ps_circle_centers.add_vector_quantity("Normal", np.array([s_circle.n for s_circle in s_circles]))
+    """
 
+    # Best Circles Cluster
+    """
     ps_best_circle_centers = ps.register_point_cloud(
         "Best Circle Centers",
         np.array([s_circle.c for s_circle in best_s_circles]))
@@ -144,10 +154,15 @@ if __name__ == '__main__':
         circle_nodes, circle_edges = generate_circle_node_edges(best_s_circles[i])
         ps.register_curve_network(f"Best circle {i+1:03d}", circle_nodes, circle_edges, radius=0.003)
         ps_best_circle_centers.add_vector_quantity("Normal", np.array([s_circle.n for s_circle in best_s_circles]))
+    """
 
+    # Generator Circle & Axis
     circle_nodes, circle_edges = generate_circle_node_edges(generator_circle)
-    ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.01)
-    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle.c]))
+    ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.005)
+    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle.c]), radius=0.01)
     ps_generator_center.add_vector_quantity("Normal", np.array([generator_circle.n]))
+    ps.register_curve_network(f"Generator Axis", np.array(
+        [-generator_circle.n + generator_circle.c, generator_circle.n + generator_circle.c]), np.array([[0, 1]]),
+                              radius=0.002)
 
     ps.show()
