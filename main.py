@@ -62,7 +62,7 @@ if __name__ == '__main__':
         # Signature extraction
         print("Computing Signatures")
         signature_extractor = compute_signature(args.file, args)
-        hks = signature_extractor.heat_signatures(10)
+        hks = signature_extractor.heat_signatures(300)
 
         print("Is nan?:", np.isnan(np.sum(hks)))
 
