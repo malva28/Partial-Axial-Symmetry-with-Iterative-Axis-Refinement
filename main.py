@@ -85,6 +85,17 @@ if __name__ == '__main__':
         # Generator axis
         best_s_circles, generator_circle = compute_generator_axis(s_circles)
 
+        # Reorientation
+        reorient_point_cloud(point_cloud, generator_circle)
+        for s_circle in best_s_circles:
+            reorient_circle(s_circle, generator_circle)
+        reorient_circle(generator_circle, generator_circle)
+
+        # Symmetric Support
+        print("Computing symmetric suppport")
+        sorted_point_cloud, sorted_fvi = sort_points_in_z_axis(point_cloud, mesh.face_vertex_indices())
+        symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud)
+
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "0" + ", \n")
     except ValueError as e:
@@ -119,15 +130,6 @@ if __name__ == '__main__':
     if not args.visual:
         print("no visual")
         exit(0)
-
-    # reorientation
-    reorient_point_cloud(point_cloud, generator_circle)
-    for s_circle in best_s_circles:
-        reorient_circle(s_circle, generator_circle)
-    reorient_circle(generator_circle, generator_circle)
-
-    sorted_point_cloud, sorted_fvi = sort_points_in_z_axis(point_cloud, mesh.face_vertex_indices())
-    symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud)
 
     ps.set_up_dir("z_up")
     ps.init()
