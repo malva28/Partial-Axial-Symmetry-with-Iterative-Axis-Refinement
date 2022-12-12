@@ -13,6 +13,7 @@ from fps import compute_fps
 from supporting_circles import compute_supporting_circles, Circle
 from generator_axis import compute_generator_axis
 from transformations import normalize, reorient_point_cloud, reorient_circle
+from symmetric_support_estimator import sort_points_in_z_axis, compute_symmetry_count_scalar_quantity
 
 
 def generate_circle_node_edges(circle: Circle, n_nodes=10):
@@ -84,6 +85,17 @@ if __name__ == '__main__':
         # Generator axis
         best_s_circles, generator_circle = compute_generator_axis(s_circles)
 
+        # Reorientation
+        reorient_point_cloud(point_cloud, generator_circle)
+        for s_circle in best_s_circles:
+            reorient_circle(s_circle, generator_circle)
+        reorient_circle(generator_circle, generator_circle)
+
+        # Symmetric Support
+        print("Computing symmetric suppport")
+        sorted_point_cloud, sorted_fvi = sort_points_in_z_axis(point_cloud, mesh.face_vertex_indices())
+        symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud)
+
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "0" + ", \n")
     except ValueError as e:
@@ -119,17 +131,13 @@ if __name__ == '__main__':
         print("no visual")
         exit(0)
 
-    # reorientation
-    reorient_point_cloud(point_cloud, generator_circle)
-    for s_circle in best_s_circles:
-        reorient_circle(s_circle, generator_circle)
-    reorient_circle(generator_circle, generator_circle)
-
     ps.set_up_dir("z_up")
     ps.init()
 
-    ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
-    ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
+    #ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
+    #ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
+    ps_mesh = ps.register_surface_mesh("sorted_mesh", sorted_point_cloud, sorted_fvi)
+    ps_mesh.add_scalar_quantity("Symmetry Levels", symmetry_levels, cmap='coolwarm')
 
     ps_cloud = ps.register_point_cloud("sample points", sample_points)
     # ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[10]])
