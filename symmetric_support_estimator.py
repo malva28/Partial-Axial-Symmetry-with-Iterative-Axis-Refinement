@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from progress_bar import print_progress_bar
 
 
 def distance_to_z_axis(p):
@@ -64,5 +65,6 @@ def compute_symmetry_count_scalar_quantity(sorted_points, threshold=0.01):
             d_to_axis_neighbor = distance_to_z_axis(neighbor_point)
             if abs(d_to_axis_point - d_to_axis_neighbor) < threshold:
                 symmetry_count[i] += 1
+        print_progress_bar(i + 1, len(sorted_points), prefix='Progress:', length=20)
 
     return np.array(symmetry_count)
