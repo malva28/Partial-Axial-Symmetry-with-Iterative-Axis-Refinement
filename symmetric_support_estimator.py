@@ -46,7 +46,7 @@ def sort_points_in_z_axis(points, face_vertex_indices):
 def compute_symmetry_count_scalar_quantity(sorted_points, threshold=0.01):
     """
     Computes an array with the amount of symmetric points each point has around the z-axis.
-    A point is axial-symmetric to another if they are around at the same distance to z and by the same z coord.
+    A point is axial-symmetric to another if they are around at the same distance to z and by the same z coord
 
     :param sorted_points: Points must be sorted in z-axis
     :param threshold: to consider distances close enough to be symmetric

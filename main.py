@@ -94,7 +94,7 @@ if __name__ == '__main__':
         # Symmetric Support
         print("Computing symmetric suppport")
         sorted_point_cloud, sorted_fvi = sort_points_in_z_axis(point_cloud, mesh.face_vertex_indices())
-        symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud)
+        symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud, 0.01*max_dist)
 
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "0" + ", \n")
@@ -119,11 +119,11 @@ if __name__ == '__main__':
         print(e)
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "1" + ", " + e.__class__.__name__ + "\n")
-        #ps.init()
-        #ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
-        #print(hks.shape)
-        #ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
-        #ps.show()
+        # ps.init()
+        # ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
+        # print(hks.shape)
+        # ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
+        # ps.show()
 
         exit(0)
 
@@ -134,8 +134,8 @@ if __name__ == '__main__':
     ps.set_up_dir("z_up")
     ps.init()
 
-    #ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
-    #ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
+    # ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
+    # ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
     ps_mesh = ps.register_surface_mesh("sorted_mesh", sorted_point_cloud, sorted_fvi)
     ps_mesh.add_scalar_quantity("Symmetry Levels", symmetry_levels, cmap='coolwarm')
 
