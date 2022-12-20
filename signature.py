@@ -27,7 +27,8 @@ class SignatureExtractor(object):
             mesh (trimesh.Trimesh): Mesh to extract signatures from
             n (int): Number of eigenvalues and eigenvectors to compute.
             approx (str, optional): Laplace operator approximation to use. 
-                                    Must be in ['beltrami', 'cotangens', 'mesh', 'fem']. Defaults to 'cotangens'.
+                                    Must be in ['robust', 'beltrami', 'cotangens', 'mesh', 'fem'].
+                                    Defaults to 'cotangens'.
         """
         self.W, self.M = laplace.get_laplace_operator_approximation(mesh, approx)
         self.n_basis = min(len(mesh.vertices) - 1, n)
