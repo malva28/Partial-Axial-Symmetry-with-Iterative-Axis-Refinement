@@ -234,21 +234,39 @@ def circle_average(circles: list[Circle]):
     return Circle(c_avg, r_avg, n_avg)
 
 
-def compute_generator_axis(circles: list[Circle]):
+def compute_generator_axis(circles: list[Circle],
+                           angular_r=0.015, angular_s=0.03, angular_k=10,
+                           axis_r=0.25, axis_s=0.5, axis_k=5):
+    """
+    From a list of supporting circles, computes the generator axis by a two-clustering process.
+
+    First, clusters the circles by similar angles and selects the most populated cluster.
+    Then, repeat the process clustering by similar axis.
+    At the end, use the final cluster to compute the generator axis via average of the cluster.
+
+    :param circles: List of supporting circles
+    :param angular_r: Maximum distance point-centroid in the angular-clustering.
+    :param angular_s: Minimum distance to a distant point in the angular-clustering.
+    :param angular_k: Minimum number of points per cluster in the angular-clustering.
+    :param axis_r: Maximum distance point-centroid in the axis-clustering.
+    :param axis_s: Minimum distance to a distant point in the axis-clustering.
+    :param axis_k: Minimum number of points per cluster in the axis-clustering.
+    :return: The final cluster and the generator axis computed from it.
+    """
     # transform the 1-D list of circles into a 2-D array
     circles = np.array([circle.get_c_r_n_tuple() for circle in circles])
 
     # cluster the circles by angular distance
     angular_dists = squareform(pdist(circles, metric=angular_distance))
-    similar_angle_clusters = adaptive_clustering_medoids(angular_dists, len(circles), 0.015, 0.03, 10)
+    similar_angle_clusters = adaptive_clustering_medoids(angular_dists, len(circles), angular_r, angular_s, angular_k)
     max_cluster_circles = get_circles_of_most_populated_cluster(circles, similar_angle_clusters)
 
     # cluster the selected circles by axial distance
     axial_dists = squareform(pdist(max_cluster_circles, metric=axial_distance))
     # print(axial_dists)
-    similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), 0.25, 0.5, 5)
+    similar_axis_clusters = adaptive_clustering_medoids(axial_dists, len(max_cluster_circles), axis_r, axis_s, axis_k)
     max_cluster_circles = get_circles_of_most_populated_cluster(max_cluster_circles, similar_axis_clusters)
 
     # transform back the 2-D array into a 1-D list of circles
     max_cluster_circles = [Circle(circle[0], circle[1], circle[2]) for circle in max_cluster_circles]
-    return max_cluster_circles, circle_average(max_cluster_circles)  # WIP, should only return the circle_average
+    return max_cluster_circles, circle_average(max_cluster_circles)
