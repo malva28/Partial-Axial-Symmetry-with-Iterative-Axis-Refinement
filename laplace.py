@@ -26,16 +26,28 @@ def build_mass_matrix(mesh: trimesh.Trimesh):
 
 def approx_methods() -> list[str]:
     """Available laplace approximation types."""
+    approx_list = ['beltrami', 'cotangens', 'mesh']
+
     try:
         import lapy
-        return ['beltrami', 'cotangens', 'mesh', 'fem']
+        approx_list.append('fem')
     except ImportError:
         logging.warn(
-            "fem appxoimation only works if lapy is installed. "
+            "fem approximation only works if lapy is installed. "
             "You can find lapy on github: https://github.com/Deep-MI/LaPy.\n"
             "Install it with pip:\n"
             "pip3 install --user git+https://github.com/Deep-MI/LaPy.git#egg=lapy")
-        return ['beltrami', 'contangens', 'mesh']
+    try:
+        import robust_laplacian
+        approx_list.append('robust')
+    except ImportError:
+        logging.warn(
+            "robust laplacian approximation only works if robust_laplacian is installed. "
+            "Install it with pip: \n"
+            "pip3 install robust_laplacian"
+        )
+
+    return approx_list
 
 
 def build_laplace_betrami_matrix(mesh: trimesh.Trimesh):
