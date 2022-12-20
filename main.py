@@ -44,13 +44,40 @@ def generate_circle_node_edges(circle: Circle, n_nodes=10):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mesh signature visualization')
+    parser.add_argument('--file', default='files/cat0.off', type=str, help='File to use')
+    # Laplace-related
     parser.add_argument('--n_basis', default='100', type=int, help='Number of basis used')
     parser.add_argument('--approx', default='cotangens', choices=laplace.approx_methods(), type=str,
                         help='Laplace approximation to use')
     parser.add_argument('--signature', default='heat', choices=signature.kernel_signatures(), type=str,
                         help='Kernel signature to use')
-    parser.add_argument('--file', default='files/cat0.off', type=str, help='File to use')
-    parser.add_argument('--visual', default=True, action='store_true', help="True if you want to ")
+    # FPS-related
+    parser.add_argument('--n_samples', default=30, type=int, help='number of points to sample with FPS')
+    # Supporting Circles-related
+    parser.add_argument('--n_candidates_per_circle', default=500, type=int,
+                        help='Number of circle candidates from where to choose each single Supporting Circle.')
+    parser.add_argument('--circle_candidate_threshold', default=0.005, type=float,
+                        help='Threshold to consider a point part of a circle candidate. Distance to circle candidate '
+                             '(float representing percentage of diagonal)')
+    # Clustering-related (Generator Axis)
+    parser.add_argument('--angular_r', default=0.015, type=float,
+                        help='Maximum distance point-centroid in the angular-clustering.')
+    parser.add_argument('--angular_s', default=0.03, type=float,
+                        help='Minimum distance to a distant point in the angular-clustering.')
+    parser.add_argument('--angular_k', default=10, type=int,
+                        help='Minimum number of points per cluster in the angular-clustering.')
+    parser.add_argument('--axis_r', default=0.25, type=float,
+                        help='Maximum distance point-centroid in the axis-clustering.')
+    parser.add_argument('--axis_s', default=0.5, type=float,
+                        help='Minimum distance to a distant point in the axis-clustering.')
+    parser.add_argument('--axis_k', default=5, type=int,
+                        help='Minimum number of points per cluster in the axis-clustering.')
+    # Symmetric Support-related
+    parser.add_argument('--symmetric_support_threshold', default=0.01, type=float,
+                        help='Threshold to consider a point affected by axial symmetry. Distance to the axial circle. '
+                             '(float representing percentage of diagonal)')
+    # Visual related
+    parser.add_argument('--visual', default=True, action='store_true', help="True if you want to display results.")
     parser.add_argument('--no-visual', dest='visual', action='store_false')
 
     args = parser.parse_args()
@@ -71,9 +98,11 @@ if __name__ == '__main__':
         print("Is nan?:", np.isnan(np.sum(hks)))
 
         # FPS
-        print("FPSampling")
+        n_samples = max(args.n_samples, point_cloud.shape[0]//200)  # Use at least 0.5% of the points
+        n_samples = min(n_samples, point_cloud.shape[0])  # But no more than 100% of the points
+        print(f"FPSampling with {n_samples}")
         sample_points, sample_indices = compute_fps(args.file,
-                                                    min(point_cloud.shape[0], max(point_cloud.shape[0]//200, 30)),
+                                                    n_samples,
                                                     pc=point_cloud)
 
         # knn
@@ -84,10 +113,15 @@ if __name__ == '__main__':
         # Supporting Circles
         print("Computing Supporting Circles")
         max_dist = 1  # As the object is normalized to 1, we can use that
-        s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices], 500, 0.005*max_dist)
+        s_circles, s_circles_votes = compute_supporting_circles(point_cloud[nbrs_indices],
+                                                                args.n_candidates_per_circle,
+                                                                args.circle_candidate_threshold*max_dist)
 
         # Generator axis
-        best_s_circles, generator_circle = compute_generator_axis(s_circles)
+        print("Computing Generator Axis")
+        best_s_circles, generator_circle = compute_generator_axis(s_circles,
+                                                                  args.angular_r, args.angular_s, args.angular_k,
+                                                                  args.axis_r, args.axis_s, args.axis_k)
 
         # Reorientation
         reorient_point_cloud(point_cloud, generator_circle)
@@ -98,7 +132,8 @@ if __name__ == '__main__':
         # Symmetric Support
         print("Computing symmetric suppport")
         sorted_point_cloud, sorted_fvi = sort_points_in_z_axis(point_cloud, mesh.face_vertex_indices())
-        symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud, 0.01*max_dist)
+        symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud,
+                                                                 args.symmetric_support_threshold*max_dist)
 
         with open("log.txt", "a") as logf:
             logf.write(args.file + ", " + "0" + ", \n")
