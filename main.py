@@ -178,7 +178,7 @@ if __name__ == '__main__':
     ps_mesh = ps.register_surface_mesh("sorted_mesh", sorted_point_cloud, sorted_fvi)
     ps_mesh.add_scalar_quantity("Symmetry Levels", symmetry_levels, cmap='coolwarm')
 
-    ps_cloud = ps.register_point_cloud("sample points", sample_points)
+    # ps_cloud = ps.register_point_cloud("sample points", sample_points)
     # ps_similar = ps.register_point_cloud("similar hks points", point_cloud[nbrs_indices[10]])
 
     # All supporting circles
