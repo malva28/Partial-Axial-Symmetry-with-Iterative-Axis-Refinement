@@ -335,7 +335,7 @@ def compute_signature(filename, args):
     Returns:
         SignatureExtractor
     """
-    name = os.path.splitext(filename)[0]
+    name = os.path.splitext(filename)[0]+'-'+args.approx+'-'+str(args.n_basis)
     path = os.path.join('data', name + '.npz')
     if os.path.exists(path):
         extractor = SignatureExtractor(path=path)

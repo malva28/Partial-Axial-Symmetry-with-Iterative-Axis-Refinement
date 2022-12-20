@@ -143,7 +143,7 @@ if __name__ == '__main__':
             logf.write(args.file + ", " + "1" + ", " + e.__class__.__name__ + "\n")
 
         # clear .npz
-        name = os.path.splitext(args.file)[0]
+        name = os.path.splitext(args.file)[0]+'-'+args.approx+'-'+str(args.n_basis)
         path = os.path.join('data', name + '.npz')
         if os.path.exists(path):
             os.remove(path)
