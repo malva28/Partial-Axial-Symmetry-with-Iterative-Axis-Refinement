@@ -8,6 +8,8 @@ import polyscope as ps
 import trimesh
 import laplace
 import openmesh
+
+import signature
 from signature import compute_signature
 from fps import compute_fps
 from supporting_circles import compute_supporting_circles, Circle
@@ -45,6 +47,8 @@ if __name__ == '__main__':
     parser.add_argument('--n_basis', default='100', type=int, help='Number of basis used')
     parser.add_argument('--approx', default='cotangens', choices=laplace.approx_methods(), type=str,
                         help='Laplace approximation to use')
+    parser.add_argument('--signature', default='heat', choices=signature.kernel_signatures(), type=str,
+                        help='Kernel signature to use')
     parser.add_argument('--file', default='files/cat0.off', type=str, help='File to use')
     parser.add_argument('--visual', default=True, action='store_true', help="True if you want to ")
     parser.add_argument('--no-visual', dest='visual', action='store_false')
@@ -62,7 +66,7 @@ if __name__ == '__main__':
         # Signature extraction
         print("Computing Signatures")
         signature_extractor = compute_signature(args.file, args)
-        hks = signature_extractor.heat_signatures(300)
+        hks = signature_extractor.signatures(args.signature, 300)
 
         print("Is nan?:", np.isnan(np.sum(hks)))
 
@@ -73,7 +77,7 @@ if __name__ == '__main__':
                                                     pc=point_cloud)
 
         # knn
-        print("(KNN) Finding Similar HKS points to the sampled points")
+        print(f"(KNN) Finding Similar {args.signature} signature points to the sampled points")
         nbrs = neighbors.NearestNeighbors(n_neighbors=20, algorithm='ball_tree').fit(hks)
         nbrs_distances, nbrs_indices = nbrs.kneighbors(hks[sample_indices])
 

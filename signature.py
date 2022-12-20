@@ -151,7 +151,7 @@ class SignatureExtractor(object):
         
         return np.divide(self.evecs, self.evals)
 
-    def signatures(self, dim : int, kernel : str, return_x_ticks=False, x_ticks=None):
+    def signatures(self, kernel: str, dim: int = 300, return_x_ticks=False, x_ticks=None):
         """Computes a signature for each vertex
 
         Args:
@@ -165,10 +165,11 @@ class SignatureExtractor(object):
             Returns an array of shape (#vertices, dim) containing the mesh signatures of every vertex.
             If return_x_ticks is True this function returns a tuple (signature, x_ticks).
         """
-        assert kernel in ['heat', 'wave'], f"Invalid kernel type '{kernel}'. Must be in ['heat', 'wave']"
+        assert kernel in kernel_signatures(), f"Invalid kernel type '{kernel}'. Must be in {kernel_signatures()}"
 
-
-        if kernel == 'heat':
+        if kernel == 'global':
+            return self.global_point_signatures()
+        elif kernel == 'heat':
             return self.heat_signatures(dim, return_x_ticks, x_ticks)
         else:
             return self.wave_signatures(dim, return_x_ticks, x_ticks)
@@ -317,6 +318,11 @@ class SignatureExtractor(object):
         if not self._initialized:
             raise RuntimeError("Extractor not initialized")
         return self.evals
+
+
+def kernel_signatures():
+    """Available kernel signature types."""
+    return ['heat', 'wave', 'global']
 
 
 def compute_signature(filename, args):
