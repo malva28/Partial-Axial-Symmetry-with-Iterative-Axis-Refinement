@@ -9,6 +9,7 @@ __pycache__/
 *.npz
 imgui.ini
 .polyscope.ini
+screenshots/
 
 # Logs
 log.txt
