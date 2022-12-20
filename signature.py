@@ -1,7 +1,6 @@
 # https://github.com/ivansipiran/CC5513_Procesamiento_Geometrico
 
 import numpy as np
-import robust_laplacian
 import scipy
 import trimesh
 import logging
@@ -31,10 +30,7 @@ class SignatureExtractor(object):
                                     Must be in ['robust', 'beltrami', 'cotangens', 'mesh', 'fem'].
                                     Defaults to 'cotangens'.
         """
-        if approx == 'robust':
-            self.W, self.M = robust_laplacian.mesh_laplacian(np.array(mesh.vertices), np.array(mesh.faces))
-        else:
-            self.W, self.M = laplace.get_laplace_operator_approximation(mesh, approx)
+        self.W, self.M = laplace.get_laplace_operator_approximation(mesh, approx)
         self.n_basis = min(len(mesh.vertices) - 1, n)
 
         sigma = -0.01

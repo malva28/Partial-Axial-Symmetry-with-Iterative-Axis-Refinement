@@ -191,7 +191,10 @@ def get_laplace_operator_approximation(mesh: trimesh.Trimesh,
             f"Invalid approximation method must be one of {approx_methods}."
             f"Got {approx}")
 
-    if approx == 'fem':
+    if approx == 'robust':
+        import robust_laplacian
+        return robust_laplacian.mesh_laplacian(np.array(mesh.vertices), np.array(mesh.faces))
+    elif approx == 'fem':
         import lapy
         T = lapy.TriaMesh(mesh.vertices, mesh.faces)
         solver = lapy.Solver(T)
