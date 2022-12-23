@@ -27,7 +27,8 @@ class SignatureExtractor(object):
             mesh (trimesh.Trimesh): Mesh to extract signatures from
             n (int): Number of eigenvalues and eigenvectors to compute.
             approx (str, optional): Laplace operator approximation to use. 
-                                    Must be in ['beltrami', 'cotangens', 'mesh', 'fem']. Defaults to 'cotangens'.
+                                    Must be in ['robust', 'beltrami', 'cotangens', 'mesh', 'fem'].
+                                    Defaults to 'cotangens'.
         """
         self.W, self.M = laplace.get_laplace_operator_approximation(mesh, approx)
         self.n_basis = min(len(mesh.vertices) - 1, n)
@@ -150,7 +151,7 @@ class SignatureExtractor(object):
         
         return np.divide(self.evecs, self.evals)
 
-    def signatures(self, dim : int, kernel : str, return_x_ticks=False, x_ticks=None):
+    def signatures(self, kernel: str, dim: int = 300, return_x_ticks=False, x_ticks=None):
         """Computes a signature for each vertex
 
         Args:
@@ -164,10 +165,11 @@ class SignatureExtractor(object):
             Returns an array of shape (#vertices, dim) containing the mesh signatures of every vertex.
             If return_x_ticks is True this function returns a tuple (signature, x_ticks).
         """
-        assert kernel in ['heat', 'wave'], f"Invalid kernel type '{kernel}'. Must be in ['heat', 'wave']"
+        assert kernel in kernel_signatures(), f"Invalid kernel type '{kernel}'. Must be in {kernel_signatures()}"
 
-
-        if kernel == 'heat':
+        if kernel == 'global':
+            return self.global_point_signatures()
+        elif kernel == 'heat':
             return self.heat_signatures(dim, return_x_ticks, x_ticks)
         else:
             return self.wave_signatures(dim, return_x_ticks, x_ticks)
@@ -318,6 +320,11 @@ class SignatureExtractor(object):
         return self.evals
 
 
+def kernel_signatures():
+    """Available kernel signature types."""
+    return ['heat', 'wave', 'global']
+
+
 def compute_signature(filename, args):
     """Computes a Signature Extractor from an object file
 
@@ -328,12 +335,13 @@ def compute_signature(filename, args):
     Returns:
         SignatureExtractor
     """
-    name = os.path.splitext(filename)[0]
-    if os.path.exists(name + '.npz'):
-        extractor = SignatureExtractor(path=name + '.npz')
+    name = os.path.splitext(filename)[0]+'-'+args.approx+'-'+str(args.n_basis)
+    path = os.path.join('data', name + '.npz')
+    if os.path.exists(path):
+        extractor = SignatureExtractor(path=path)
     else:
         mesh = trimesh.load(filename)
         extractor = SignatureExtractor(mesh, args.n_basis, args.approx)
-        np.savez_compressed(name + '.npz', evals=extractor.evals, evecs=extractor.evecs)
+        np.savez_compressed(path, evals=extractor.evals, evecs=extractor.evecs)
 
     return extractor
