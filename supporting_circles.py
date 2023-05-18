@@ -10,6 +10,12 @@ class Circle:
         self.r = radius
         self.n = normal
 
+    def __str__(self):
+        return "Circle = (r: {} ; c: {} ; n: {})".format(self.r, self.c, self.n)
+
+    def __eq__(self, other):
+        return (self.c == other.c).all() and self.r == other.r and (self.n == other.n).all()
+
     def get_phi(self):
         """
         Gets the azimuthal angle of the circle's normal (rotation from the initial meridian plane in spherical coords)

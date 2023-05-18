@@ -65,7 +65,7 @@ class SignatureExtractor(object):
 
         self._initialized = True
 
-    def heat_signatures(self, dim : int, return_times=False, times=None):
+    def heat_signatures(self, dim : int, return_times=False, times=None, log_entry = None):
         """Compute the heat signature for all vertices
 
         Args:
@@ -151,13 +151,13 @@ class SignatureExtractor(object):
         
         return np.divide(self.evecs, self.evals)
 
-    def signatures(self, kernel: str, dim: int = 300, return_x_ticks=False, x_ticks=None):
+    def signatures(self, kernel: str, dim: int = 300, return_x_ticks=False, x_ticks=None, log_entry=None):
         """Computes a signature for each vertex
 
         Args:
             dim (int): Dimensionality (energy spectra) of the signature.
             kernel (str): Feature kernel used must be in ['heat', 'wave'].
-            return_x_ticks (bool, optional): If True the function returns a tuple (signature, x_ticks) 
+            return_x_ticks (bool, optional): If True the function returns a tuple (signature, x_ticks)
                                             otherwise only the signature is returned. Defaults to False.
             x_ticks (arraylike, optional): Variable used for the feature dimension. Defaults to None.
 
@@ -170,7 +170,7 @@ class SignatureExtractor(object):
         if kernel == 'global':
             return self.global_point_signatures()
         elif kernel == 'heat':
-            return self.heat_signatures(dim, return_x_ticks, x_ticks)
+            return self.heat_signatures(dim, return_x_ticks, x_ticks, log_entry=log_entry)
         else:
             return self.wave_signatures(dim, return_x_ticks, x_ticks)
 
@@ -337,6 +337,10 @@ def compute_signature(filename, args):
     """
     name = os.path.splitext(filename)[0]+'-'+args.approx+'-'+str(args.n_basis)
     path = os.path.join('data', name + '.npz')
+    dirs = os.path.join('data', os.path.dirname(name))
+    if not os.path.exists(dirs):
+        os.makedirs(dirs)
+        print("Created directory '{}'".format(dirs))
     if os.path.exists(path):
         extractor = SignatureExtractor(path=path)
     else:
@@ -345,3 +349,4 @@ def compute_signature(filename, args):
         np.savez_compressed(path, evals=extractor.evals, evecs=extractor.evecs)
 
     return extractor
+
