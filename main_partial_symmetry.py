@@ -21,7 +21,8 @@ from transformations import normalize, reorient_point_cloud, reorient_circle
 from symmetric_support_estimator import sort_points_in_z_axis, compute_symmetry_count_scalar_quantity
 import utils
 from common_args import create_common_args, symmetry_param_keys
-from mesh_axis_render import show_mesh_with_partial_axis, take_screenshots, generate_circle_node_edges
+from mesh_axis_render import show_mesh_with_partial_axis, take_screenshots
+
 
 class LogEntry:
     def __init__(self, project_path = ""):

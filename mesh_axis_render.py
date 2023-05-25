@@ -5,31 +5,10 @@ from transformations import normalize, reorient_point_cloud, reorient_point_clou
 import os
 
 
-def generate_circle_node_edges(circle: "Circle", n_nodes=10):
-    c, r, n = circle.get_c_r_n_tuple()
-
-    # let v1, v2, n an orthonormal system
-    v1 = np.array([n[1], -n[0], 0])
-    if np.array_equal(v1, np.zeros(3)):  # n is a Z(+|-) vector, so v1 has to be calculated in another way
-        v1 = np.array([1, 0, 0])  # but any (X|Y)(+|-) will do it.
-
-    v2 = np.cross(n, v1)
-
-    # make them orthonormal
-    v1 = v1 / np.linalg.norm(v1)
-    v2 = v2 / np.linalg.norm(v2)
-
-    nodes = []
-    edges = []
-    for i in range(0, n_nodes):
-        theta = i * 2 * np.pi / n_nodes
-        nodes.append(c + r * (v1 * np.cos(theta) + v2 * np.sin(theta)))
-        edges.append([i, (i + 1) % n_nodes])
-
-    return np.array(nodes), np.array(edges)
 
 
-def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_threshold, phi, theta):
+
+def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_threshold, phi, theta, symmetric_support=True):
 
     point_cloud = mesh.points()
     normalize(point_cloud)
@@ -38,8 +17,10 @@ def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_thresh
     # Symmetric Support
     max_dist = 1  # As the object is normalized to 1, we can use that
     print("Computing symmetric suppport")
+
     sorted_point_cloud, sorted_fvi = sort_points_in_z_axis(point_cloud, mesh.face_vertex_indices())
-    symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud,
+    if symmetric_support:
+        symmetry_levels = compute_symmetry_count_scalar_quantity(sorted_point_cloud,
                                                              symmetric_support_threshold * max_dist)
 
     ps.set_up_dir("z_up")
@@ -48,10 +29,11 @@ def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_thresh
     # ps_mesh = ps.register_surface_mesh("mesh", mesh.points(), mesh.face_vertex_indices())
     # ps_mesh.add_scalar_quantity("HKS (02nd descriptor)", hks[:, 1], cmap='coolwarm')
     ps_mesh = ps.register_surface_mesh("sorted_mesh", sorted_point_cloud, sorted_fvi)
-    ps_mesh.add_scalar_quantity("Symmetry Levels", symmetry_levels, cmap='coolwarm')
+    if symmetric_support:
+        ps_mesh.add_scalar_quantity("Symmetry Levels", symmetry_levels, cmap='coolwarm')
 
     # Generator Circle & Axis
-    circle_nodes, circle_edges = generate_circle_node_edges(generator_circle)
+    circle_nodes, circle_edges = generator_circle.generate_circle_node_edges()
     ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.005)
     ps_generator_center = ps.register_point_cloud("Generator Center", np.array([generator_circle.c]), radius=0.01)
     ps_generator_center.add_vector_quantity("Normal", np.array([generator_circle.n]))

@@ -1,5 +1,7 @@
 import numpy as np
 from supporting_circles import Circle
+import functools
+
 
 def get_bounding_box_extremes(points):
     # Find box-hull diagonal extremes
@@ -21,7 +23,7 @@ def get_bounding_box_extremes(points):
 def normalize(points):
     extreme_1, extreme_2 = get_bounding_box_extremes(points)
     # re-center to (0, 0, 0)
-    recenter(points, (extreme_1+extreme_2)/2)
+    recenter(points, (extreme_1 + extreme_2) / 2)
 
     # Scale by 1/box_diagonal
     distance = np.linalg.norm(extreme_1 - extreme_2)
@@ -81,3 +83,61 @@ def reorient_circle(circle, axial_circle: Circle):
 
     circle.n = np.matmul(np.matmul(rotation_y, rotation_z), circle.n)
     circle.c = np.matmul(np.matmul(rotation_y, rotation_z), circle.c)
+
+
+# funciones extraídas de transformations.py del repositorio de Computación Gráfica
+def translate(tx, ty, tz):
+    return np.array([
+        [1, 0, 0, tx],
+        [0, 1, 0, ty],
+        [0, 0, 1, tz],
+        [0, 0, 0, 1]], dtype=np.float32)
+
+
+def rotation_x(theta):
+    sin_theta = np.sin(theta)
+    cos_theta = np.cos(theta)
+
+    return np.array([
+        [1, 0, 0, 0],
+        [0, cos_theta, -sin_theta, 0],
+        [0, sin_theta, cos_theta, 0],
+        [0, 0, 0, 1]], dtype=np.float32)
+
+
+def rotation_axis(theta, point1, point2):
+    axis = point2 - point1
+    axis = axis / np.linalg.norm(axis)
+    a, b, c = axis
+    h = np.sqrt(a ** 2 + c ** 2)
+
+    t = translate(-point1[0], -point1[1], -point1[2])
+    tinv = translate(point1[0], point1[1], point1[2])
+
+    ry = np.array([
+        [a / h, 0, c / h, 0],
+        [0, 1, 0, 0],
+        [-c / h, 0, a / h, 0],
+        [0, 0, 0, 1]], dtype=np.float32)
+
+    ryinv = np.array([
+        [a / h, 0, -c / h, 0],
+        [0, 1, 0, 0],
+        [c / h, 0, a / h, 0],
+        [0, 0, 0, 1]], dtype=np.float32)
+
+    rz = np.array([
+        [h, b, 0, 0],
+        [-b, h, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]], dtype=np.float32)
+
+    rzinv = np.array([
+        [h, -b, 0, 0],
+        [b, h, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]], dtype=np.float32)
+
+    rx = rotation_x(theta)
+
+    return functools.reduce(np.matmul, [tinv, ryinv, rzinv, rx, rz, ry, t])

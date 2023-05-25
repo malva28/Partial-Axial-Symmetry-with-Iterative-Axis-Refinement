@@ -32,13 +32,43 @@ class Circle:
         x, y, z = self.n
         return np.arccos(z)
 
-    def get_c_r_n_tuple(self):
+    def get_c_r_n_tuple(self) -> tuple[np.ndarray, float, np.ndarray]:
         """
         Gets the center, radius and normal in a 3-tuple
         :return:
         """
         return self.c, self.r, self.n
 
+    def generate_circle_node_edges(self, n_nodes=10, angle_shift: float = 0):
+        return generate_circle_node_edges_from_circle_vals(*self.get_c_r_n_tuple(), n_nodes, angle_shift)
+
+
+def generate_circle_node_edges_from_circle_vals(
+        c: np.ndarray,
+        r: float,
+        n: np.ndarray,
+        n_nodes: int = 10,
+        angle_shift: float = 0):
+
+    # let v1, v2, n an orthonormal system
+    v1 = np.array([n[1], -n[0], 0])
+    if np.array_equal(v1, np.zeros(3)):  # n is a Z(+|-) vector, so v1 has to be calculated in another way
+        v1 = np.array([1, 0, 0])  # but any (X|Y)(+|-) will do it.
+
+    v2 = np.cross(n, v1)
+
+    # make them orthonormal
+    v1 = v1 / np.linalg.norm(v1)
+    v2 = v2 / np.linalg.norm(v2)
+
+    nodes = []
+    edges = []
+    for i in range(0, n_nodes):
+        theta = angle_shift + i * 2 * np.pi / n_nodes
+        nodes.append(c + r * (v1 * np.cos(theta) + v2 * np.sin(theta)))
+        edges.append([i, (i + 1) % n_nodes])
+
+    return np.array(nodes), np.array(edges)
 
 class SupportingCircle:
     def __init__(self, circle_candidates=500, max_dist_threshold=None):

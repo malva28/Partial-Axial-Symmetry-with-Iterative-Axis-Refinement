@@ -68,3 +68,5 @@ def compute_symmetry_count_scalar_quantity(sorted_points, threshold=0.01):
         print_progress_bar(i + 1, len(sorted_points), prefix='Progress:', length=20)
 
     return np.array(symmetry_count)
+
+

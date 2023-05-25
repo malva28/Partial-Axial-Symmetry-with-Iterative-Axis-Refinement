@@ -59,6 +59,7 @@ pymeshlab==2022.2.post2
 pyparsing==3.0.4
 pyrsistent==0.18.0
 python-dateutil==2.8.2
+pytorch3d @ pip install git+https://github.com/facebookresearch/pytorch3d.git@stable
 pytz==2022.6
 pywin32==302
 pywinpty==2.0.2
@@ -78,6 +79,7 @@ tenacity==8.1.0
 terminado==0.13.1
 testpath==0.6.0
 threadpoolctl==2.2.0
+torchvision
 tornado==6.1
 traitlets==5.1.1
 trimesh==3.14.1
