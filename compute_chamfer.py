@@ -6,7 +6,7 @@ from pytorch3d.structures import Pointclouds, Meshes
 from transformations import rotation_axis
 import torch
 from pytorch3d.ops import sample_points_from_meshes
-from progress_bar import print_progress_bar
+
 
 from mesh_axis_render import show_mesh_with_partial_axis
 
@@ -16,7 +16,7 @@ def compute_symmetry_chamfer_distance_2(sorted_points, rotated_sorted_point, thr
     print(loss)
 
 
-def compute_symmetry_chamfer_distance(point_cloud: torch.Tensor, generator_circle: "Circle"):
+def compute_symmetry_chamfer_distance(point_cloud: torch.Tensor, generator_circle: "Circle", n_angles: int = 12):
 #def compute_symmetry_chamfer_distance(mesh, generator_circle: "Circle"):
     #sorted_points = mesh.points()
     #verts = torch.tensor(mesh.points(), dtype=torch.float32)
@@ -29,11 +29,9 @@ def compute_symmetry_chamfer_distance(point_cloud: torch.Tensor, generator_circl
     # sorted_point_cloud = Pointclouds(points=torch.from_numpy(sorted_points))
 
     #sorted_point_cloud = Pointclouds(points=torch.tensor(sorted_points, dtype=torch.float32))
-    angles = np.linspace(0, 2*np.pi, num=12, endpoint=False)
+    angles = np.linspace(0, 2*np.pi, num=n_angles, endpoint=False)
     loss_array = np.zeros(angles.shape)
-    print("Computing chamfer distance for a Point Cloud of shape: {}".format(point_cloud.shape))
     for i in range(len(angles)):
-        print_progress_bar(i, len(angles), print_end="")
         theta = angles[i]
         point_1 = generator_circle.c
         point_2 = point_1 + generator_circle.n

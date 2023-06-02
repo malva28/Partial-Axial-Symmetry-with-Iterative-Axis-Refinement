@@ -30,6 +30,7 @@ jupyterlab-pygments==0.1.2
 jupyterlab-widgets==1.0.0
 LaPy
 MarkupSafe==2.1.1
+matplotlib
 matplotlib-inline==0.1.2
 mistune==0.8.4
 mkl-fft

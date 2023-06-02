@@ -21,16 +21,14 @@ class Circle:
         Gets the azimuthal angle of the circle's normal (rotation from the initial meridian plane in spherical coords)
         :return:
         """
-        x, y, z = self.n
-        return np.arctan(y/x)
+        return get_phi_from_normal(self.n)
 
     def get_theta(self):
         """
         Gets the polar angle of the circle's normal (inclination from respect to the polar axis z)
         :return:
         """
-        x, y, z = self.n
-        return np.arccos(z)
+        return get_theta_from_normal(self.n)
 
     def get_c_r_n_tuple(self) -> tuple[np.ndarray, float, np.ndarray]:
         """
@@ -42,6 +40,46 @@ class Circle:
     def generate_circle_node_edges(self, n_nodes=10, angle_shift: float = 0):
         return generate_circle_node_edges_from_circle_vals(*self.get_c_r_n_tuple(), n_nodes, angle_shift)
 
+    def generate_random_circle_node_edges(self, n_nodes: int = 10):
+        return generate_random_circle_node_edges_from_circle_vals(*self.get_c_r_n_tuple(), n_nodes)
+
+
+def get_phi_from_normal(normal: np.ndarray):
+    if normal.ndim == 1:
+        x, y, z = normal
+        return np.arctan(y / x)
+    else:
+        return np.arctan2(normal[:,1], normal[:,2])
+
+
+def get_theta_from_normal(normal: np.ndarray):
+    if normal.ndim == 1:
+        x, y, z = normal
+        return np.arccos(z)
+    if normal.ndim == 2:
+        return np.arccos(normal[:, 2])
+
+def get_orthonormal_system(a_vec):
+    # let v1, v2, n an orthonormal system
+    v1 = np.array([a_vec[1], -a_vec[0], 0])
+    if np.array_equal(v1, np.zeros(3)):  # n is a Z(+|-) vector, so v1 has to be calculated in another way
+        v1 = np.array([1, 0, 0])  # but any (X|Y)(+|-) will do it.
+
+    v2 = np.cross(a_vec, v1)
+
+    # make them orthonormal
+    v1 = v1 / np.linalg.norm(v1)
+    v2 = v2 / np.linalg.norm(v2)
+    return v1, v2
+
+
+def unit_vector_by_polar_coords(unit_coord_1: np.ndarray,
+                                unit_coord_2: np.ndarray,
+                                origin: np.ndarray,
+                                radius: float,
+                                angle: float):
+    return origin + radius * (unit_coord_1 * np.cos(angle) + unit_coord_2 * np.sin(angle))
+
 
 def generate_circle_node_edges_from_circle_vals(
         c: np.ndarray,
@@ -50,22 +88,34 @@ def generate_circle_node_edges_from_circle_vals(
         n_nodes: int = 10,
         angle_shift: float = 0):
 
-    # let v1, v2, n an orthonormal system
-    v1 = np.array([n[1], -n[0], 0])
-    if np.array_equal(v1, np.zeros(3)):  # n is a Z(+|-) vector, so v1 has to be calculated in another way
-        v1 = np.array([1, 0, 0])  # but any (X|Y)(+|-) will do it.
-
-    v2 = np.cross(n, v1)
-
-    # make them orthonormal
-    v1 = v1 / np.linalg.norm(v1)
-    v2 = v2 / np.linalg.norm(v2)
+    v1, v2 = get_orthonormal_system(n)
 
     nodes = []
     edges = []
     for i in range(0, n_nodes):
         theta = angle_shift + i * 2 * np.pi / n_nodes
-        nodes.append(c + r * (v1 * np.cos(theta) + v2 * np.sin(theta)))
+        nodes.append(unit_vector_by_polar_coords(v1, v2, c, r, theta))
+        edges.append([i, (i + 1) % n_nodes])
+
+    return np.array(nodes), np.array(edges)
+
+
+def generate_random_circle_node_edges_from_circle_vals(
+        c: np.ndarray,
+        r: float,
+        n: np.ndarray,
+        n_nodes: int = 10,
+        angle_shift: float = 0):
+
+    v1, v2 = get_orthonormal_system(n)
+
+    nodes = []
+    edges = []
+    angles = np.random.uniform(0, 2*np.pi, n_nodes)
+    angles = np.sort(angles)
+    for i in range(0, n_nodes):
+        theta = angles[i]
+        nodes.append(unit_vector_by_polar_coords(v1, v2, c, r, theta))
         edges.append([i, (i + 1) % n_nodes])
 
     return np.array(nodes), np.array(edges)
