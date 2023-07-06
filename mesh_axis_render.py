@@ -8,7 +8,6 @@ import os
 def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_threshold, phi, theta, symmetric_support=True):
 
     point_cloud = mesh.points()
-    normalize(point_cloud)
     # Reorientation
     reorient_point_cloud_by_angles(point_cloud, phi, theta)
     # Symmetric Support

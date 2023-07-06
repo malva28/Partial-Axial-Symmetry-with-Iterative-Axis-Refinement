@@ -72,6 +72,47 @@ symmetry_params = {
 symmetry_param_keys = list(symmetry_params.keys())
 
 
+shift_params = {
+    "delta_radius": dict(
+        default=0.268,
+        type=float,
+        help="Starting radius around the normal endpoint from which new normals are spawned from its arc. \n"
+             "Also consider that new normals will be at an angle arctan(delta_radius) with respect to the previous "
+             "symmetry axis found."),
+    "decrease_factor": dict(
+        default=0.7,
+        type=float,
+        help="Factor < 1 by which is decreased delta radius each time a normal candidate is not found on a given "
+             "iteration"
+    ),
+    "phi_simmetries": dict(
+        default=16,
+        type=int,
+        help="Number of random normals spawned from the delta radius circle"),
+    "epsilon_radius": dict(
+        default=1e-4,
+        type=float,
+        help="if delta_radius < epsilon_radius, the search for a new normal concludes"
+    ),
+    "chi_convergence": dict(
+        default=1e-4,
+        type=float,
+        help="Convergence is the differences in loss values between iterations. If it's less than chi_convergence**2, "
+             "then the search for a new normal concludes"),
+    "n_sample_points": dict(
+        default=1000,
+        type=int,
+        help="Number of sample points chosen to compute a faster Chamfer Distance. Performs uniform sampling"),
+    "n_angles": dict(
+        default=6,
+        type=int,
+        help="Number of equidistant angles in the space [0, 2pi] to be taken to compute the Chamfer Distance"
+    )
+}
+
+shift_params_keys = list(shift_params.keys())
+
+
 def create_common_args(description):
     parser = argparse.ArgumentParser(description='Mesh signature visualization')
     for key in symmetry_param_keys:
@@ -82,3 +123,10 @@ def create_common_args(description):
     parser.add_argument('--no-visual', dest='visual', action='store_false')
 
     return parser
+
+
+def add_shift_args(a_parser: argparse.ArgumentParser):
+    for key in shift_params_keys:
+        shift_dict = shift_params[key]
+        a_parser.add_argument("--" + key, **shift_dict)
+    return a_parser

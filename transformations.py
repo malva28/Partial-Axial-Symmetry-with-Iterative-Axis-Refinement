@@ -1,6 +1,23 @@
+
 import numpy as np
 from supporting_circles import Circle
 import functools
+
+
+# Esta función calcula el ángulo entre dos aristas u y v
+def myangle(u, v):
+    du = np.linalg.norm(u)
+    dv = np.linalg.norm(v)
+
+    du = max(du, 1e-8)
+    dv = max(dv, 1e-8)
+
+    return np.arccos(np.dot(u, v) / (du * dv))
+
+
+def calculate_angle_diffs_with_vector(vec_arr, a_vec):
+    return np.array([myangle(row, a_vec) for row in vec_arr])
+
 
 
 def get_bounding_box_extremes(points):
