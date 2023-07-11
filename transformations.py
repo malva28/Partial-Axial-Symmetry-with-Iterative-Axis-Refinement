@@ -4,6 +4,23 @@ from supporting_circles import Circle
 import functools
 
 
+def rad_to_degree(angles):
+    return angles*180/np.pi
+
+
+def degree_to_rad(angles):
+    return angles*np.pi/180
+
+
+def linear_range_map(array, old_limits, new_limits):
+    old_min, old_max = old_limits
+    new_min, new_max = new_limits
+    old_dist = old_max-old_min
+    new_dist = new_max-new_min
+    return (array - old_min) * new_dist/old_dist + new_min
+
+
+
 # Esta función calcula el ángulo entre dos aristas u y v
 def myangle(u, v):
     du = np.linalg.norm(u)

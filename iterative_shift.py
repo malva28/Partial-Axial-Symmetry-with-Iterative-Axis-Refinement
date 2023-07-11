@@ -216,7 +216,9 @@ def save_normal_angle_diff_into_csv(file_path, n_rows, data_dict, **params):
 def show_mesh_with_all_found_axes(
         mesh,
         gen_circle: Circle,
-        normals):
+        normals,
+        normal_labels=[],
+        normal_radius=[]):
     n_normals = len(normals)
     point_cloud = mesh.points()
     ps.set_up_dir("z_up")
@@ -225,9 +227,27 @@ def show_mesh_with_all_found_axes(
 
     circle_nodes, circle_edges = gen_circle.generate_circle_node_edges()
     ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.005)
-    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([gen_circle.c]*n_normals), radius=0.01)
+    ps_generator_center = ps.register_point_cloud("Generator Center", np.array([gen_circle.c]*n_normals),
+                                                  radius=0.01)
     ps_generator_center.add_vector_quantity("Candidate normals", normals)
     ps.register_curve_network(f"Generator Axis", np.array(
         [-gen_circle.n + gen_circle.c, gen_circle.n + gen_circle.c]), np.array([[0, 1]]),
                               radius=0.002)
+    cmap = plt.cm.get_cmap("hsv", n_normals+1)
+    color_array = [cmap(i)[:-1] for i in range(n_normals)]
+    color_array = np.array(color_array)
+    if len(normal_labels) != n_normals:
+        normal_labels = [i+1 for i in range(n_normals)]
+    if len(normal_radius) != n_normals:
+        normal_radius = [0.0005 for _ in range(n_normals)]
+    for i in range(n_normals):
+        normal = normals[i,:]
+        color = color_array[i,:]
+        label = normal_labels[i]
+        radius = normal_radius[i]
+        ps.register_curve_network("Axis {}".format(label), np.array(
+            [-normal + gen_circle.c, normal + gen_circle.c]), np.array([[0, 1]]),
+                                  radius=radius,
+                                  color=color,
+                                  transparency=0.8)
     return ps

@@ -51,37 +51,11 @@ def convert_test_array_into_dict(normal_loss_angle_diff_array: np.ndarray) -> tu
     return data_dict, n_rows
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Test iterative shift over meshes that have known symmetries')
-    add_shift_args(parser)
-    parser.add_argument("--axis_file",
-                        default='files/sym_test/mesh2.txt',
-                        type=str,
-                        help='File with axis information')
-    parser.add_argument("--file",
-                        default='files/sym_test/mesh2_man_sim.off',
-                        type=str,
-                        help='File to use')
-    parser.add_argument("--test_type",
-                        default='normal',
-                        choices=["normal", "sanity"],
-                        type=str,
-                        help='File to use')
-    parser.add_argument('--show_ps_results',
-                        default=False,
-                        action='store_true',
-                        help="True if you want to display results.")
-    parser.add_argument("--plt_y_axis",
-                        default='loss',
-                        choices=["loss", "iteration"],
-                        type=str,
-                        help='File to use')
-
-    args = parser.parse_args()
-
-    center, normals, angles = parse_axis_perturbation_file(args.axis_file)
-
-    mesh = openmesh.read_trimesh(args.file)
+def run_known_symmetry_test(mesh,
+                            center,
+                            normals,
+                            angles,
+                            args):
     print("Mesh vertices: {}".format(mesh.points().shape[0]))
     print("Original normal: {}".format(normals[0, :]))
 
@@ -138,7 +112,42 @@ if __name__ == "__main__":
     col_slice = [col_offset] + list(range(2, normal_angle_diff.shape[1]))
 
     print(normal_angle_diff)
-    plot_loss_and_angle_change(normal_angle_diff[:, col_slice], args.plt_y_axis)
+    # plot_loss_and_angle_change(normal_angle_diff[:, col_slice], args.plt_y_axis)
 
     data, n_rows = convert_test_array_into_dict(normal_angle_diff)
     save_normal_angle_diff_into_csv(args.file, n_rows, data, **used_args)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Test iterative shift over meshes that have known symmetries')
+    add_shift_args(parser)
+    parser.add_argument("--axis_file",
+                        default='files/sym_test/mesh2.txt',
+                        type=str,
+                        help='File with axis information')
+    parser.add_argument("--file",
+                        default='files/sym_test/mesh2_man_sim.off',
+                        type=str,
+                        help='File to use')
+    parser.add_argument("--test_type",
+                        default='normal',
+                        choices=["normal", "sanity"],
+                        type=str,
+                        help='File to use')
+    parser.add_argument('--show_ps_results',
+                        default=False,
+                        action='store_true',
+                        help="True if you want to display results.")
+    parser.add_argument("--plt_y_axis",
+                        default='loss',
+                        choices=["loss", "iteration"],
+                        type=str,
+                        help='File to use')
+
+    args = parser.parse_args()
+
+    center, normals, angles = parse_axis_perturbation_file(args.axis_file)
+
+    mesh = openmesh.read_trimesh(args.file)
+
+    run_known_symmetry_test(mesh, center, normals, angles, args)

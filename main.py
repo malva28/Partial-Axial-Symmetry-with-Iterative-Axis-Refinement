@@ -9,6 +9,7 @@ from iterative_shift import iterative_symmetry_shift, compute_normal_angles_chan
     save_normal_angle_diff_into_csv, convert_nlad_array_into_dict
 from transformations import normalize
 
+
 def get_row_and_angles_from_mesh(mesh):
     df = read_cache()
 
