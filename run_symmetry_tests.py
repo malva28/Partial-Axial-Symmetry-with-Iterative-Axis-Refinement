@@ -51,45 +51,14 @@ if __name__ == "__main__":
             }
         }
 
-    """
-    key_args = shift_params_keys.copy()
-    key_args.extend(["test_type", "show_ps_results", "plt_y_axis"])
-    arg_dict_list = []
-    for key in key_args:
-        value = getattr(args, key)
-        if type(value) == bool:
-            # flag found
-            if value:
-                arg_dict_list.append("--" + key)
-        else:
-            arg_dict_list.append("--" + key)
-            arg_dict_list.append(str(value))
-    """
-    # arg_dict = vars(args)
+    for num_test in [1, 2, 4, 5, 6, 7]:
+        path_mesh = mesh_data[num_test]["filename"]
+        args.file = path_mesh
 
-    for n_angle in range(13, 21):
-        print("Processing phi : {}".format(n_angle))
-        args.phi_simmetries = n_angle
-        for num_test in [1, 2, 4, 5, 6, 7]:
-            path_mesh = mesh_data[num_test]["filename"]
-            args.file = path_mesh
+        print("\n=========================================")
+        print("Procesing file: {}".format(path_mesh))
 
-            print("\n=========================================")
-            print("Procesing file: {}".format(path_mesh))
+        for i in range(args.num_test):
+            print("\nTest number: {}\n".format(i+1))
 
-            for i in range(args.num_test):
-                if n_angle != 13 or (num_test > 5 or (num_test == 5 and i > 11)):
-                    print("\nTest number: {}\n".format(i+1))
-
-                    run_known_symmetry_test(**mesh_data[num_test]["mesh_args"], **{"args": args})
-
-                """
-                subprocess_list = [python_exe, 'symmetry_test.py',
-                                   "--axis_file", path_axes,
-                                   "--file", path_mesh]
-                subprocess_list.extend(arg_dict_list)
-                process = subprocess.run(subprocess_list)
-                ret = process.returncode
-                """
-
-
+            run_known_symmetry_test(**mesh_data[num_test]["mesh_args"], **{"args": args})

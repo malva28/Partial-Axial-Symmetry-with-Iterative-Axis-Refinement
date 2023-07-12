@@ -20,25 +20,26 @@ def get_cmap(n, name='hsv'):
 
 
 if __name__ == "__main__":
-    num_csv = 7
+    num_csv = 6
     file_name = "mesh{}_man_sim.csv".format(num_csv)
     mesh_name = "mesh{}_man_sim.off".format(num_csv)
     center_name = "mesh{}.txt".format(num_csv)
 
     pd_res = pd.read_csv(os.path.join("results", "axis", file_name))
     pd_res["angle_diff"] = rad_to_degree(pd_res["angle_diff"])
-    # group_by_loss_angles = pd_res.groupby("phi_simmetries")
-    # group_by_loss_angles = pd_res.loc[pd_res["chi_convergence"] == 0.0001].loc[pd_res["phi_simmetries"] == 16].groupby(["n_angles", "desviacion"])
-    # group_by_loss_angles = pd_res.loc[pd_res["chi_convergence"] == 0.0001].loc[pd_res["phi_simmetries"] == 16].loc[pd_res["n_angles"] > 1].groupby(
-    #    ["desviacion", "n_angles"])
-    group_by_loss_angles = pd_res.loc[pd_res["chi_convergence"] == 0.0001].loc[pd_res["phi_simmetries"] == 16].loc[
-        pd_res["n_angles"] > 1].groupby(["n_angles", "desviacion"])
-    # group_by_loss_angles = pd_res.loc[pd_res["chi_convergence"] == 0.0001].groupby("n_angles")
+
+    #group_by_loss_angles = pd_res.loc[pd_res["chi_convergence"] == 0.0001].loc[pd_res["phi_simmetries"] == 16].loc[
+    #    pd_res["n_angles"] > 1].groupby(["n_angles", "desviacion"])
+
+    group_by_loss_angles = pd_res.loc[pd_res["chi_convergence"] == 0.0001].loc[pd_res["n_angles"] == 6].loc[
+        pd_res["phi_simmetries"] > 2].groupby(["desviacion", "phi_simmetries"])
+
     mean_desv_phi = group_by_loss_angles.mean()
     indices = mean_desv_phi.index.get_level_values(0).unique()
 
     for i in indices:
-        shown_y_columns = ["iteration", "angle_diff"]
+        # shown_y_columns = ["iteration", "angle_diff"]
+        shown_y_columns = ["loss", "angle_diff"]
         mean_i = mean_desv_phi.loc[[i], shown_y_columns]
         x = mean_i.index.get_level_values(1)
         std_i = group_by_loss_angles.std().loc[[i], shown_y_columns]
@@ -78,6 +79,7 @@ if __name__ == "__main__":
         plt.show()
         print("hola")
 
+        """
         std_ang = std_i["angle_diff"].to_numpy()
         center, normals, _ = parse_axis_perturbation_file(os.path.join("files", "sym_test", center_name))
         mesh = openmesh.read_trimesh(os.path.join("files", "sym_test", mesh_name))
@@ -87,3 +89,4 @@ if __name__ == "__main__":
                                            ["loss angs {}".format(i) for i in x],
                                            linear_range_map(std_ang, [std_ang.min(), std_ang.max()], [0.0001, 0.001]))
         ps.show()
+        """
