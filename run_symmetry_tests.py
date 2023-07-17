@@ -9,7 +9,6 @@ from symmetry_test import run_known_symmetry_test, parse_axis_perturbation_file
 
 
 if __name__ == "__main__":
-    python_exe = sys.executable
     parser = argparse.ArgumentParser(description='Test iterative shift over meshes that have known symmetries')
     add_shift_args(parser)
     parser.add_argument("--test_type",
@@ -30,6 +29,10 @@ if __name__ == "__main__":
                         default=20,
                         type=int,
                         help="Number of times to run each test")
+    parser.add_argument("--show_intermediate_axes",
+                        default=False,
+                        action='store_true',
+                        help="True if you want to render a polyscope result per iteration.")
 
     args = parser.parse_args()
     setattr(args, "file", "")

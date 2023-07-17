@@ -91,7 +91,8 @@ def run_known_symmetry_test(mesh,
                                                                                   args.epsilon_radius,
                                                                                   args.chi_convergence,
                                                                                   args.n_sample_points,
-                                                                                  args.n_angles)
+                                                                                  args.n_angles,
+                                                                                  args.show_intermediate_axes)
         num_its = num_its[-1]
         best_loss_normal = np.copy(best_normals[-1, :])
         resulting_normals.append(np.hstack([num_its, best_loss_normal]))

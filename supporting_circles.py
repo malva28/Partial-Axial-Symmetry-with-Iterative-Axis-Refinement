@@ -43,6 +43,9 @@ class Circle:
     def generate_random_circle_node_edges(self, n_nodes: int = 10):
         return generate_random_circle_node_edges_from_circle_vals(*self.get_c_r_n_tuple(), n_nodes)
 
+    def generate_distributed_random_circle_node_edges(self, n_nodes: int = 10):
+        return generate_distributed_random_circle_node_edges_from_circle_vals(*self.get_c_r_n_tuple(), n_nodes)
+
 
 def get_phi_from_normal(normal: np.ndarray):
     if normal.ndim == 1:
@@ -117,6 +120,50 @@ def generate_random_circle_node_edges_from_circle_vals(
         theta = angles[i]
         nodes.append(unit_vector_by_polar_coords(v1, v2, c, r, theta))
         edges.append([i, (i + 1) % n_nodes])
+
+    return np.array(nodes), np.array(edges)
+
+
+def generate_distributed_random_circle_node_edges_from_circle_vals(
+        c: np.ndarray,
+        r: float,
+        n: np.ndarray,
+        n_nodes: int = 10,
+        n_sectors: int = None,
+        angle_shift: float = None):
+    """
+    Ensures that there's at least one candidate random edge in a circle sector
+    """
+
+    if angle_shift is None:
+        angle_shift = np.random.uniform(0, np.pi/2)
+
+    if n_sectors is None:
+        n_sectors = n_nodes//3
+
+    nodes_per_sector = np.ones(n_sectors, dtype=int) * (n_nodes // n_sectors)
+    rem = n_nodes % n_sectors
+    if rem > 0:
+        ind_array = np.arange(n_sectors)
+        np.random.shuffle(ind_array)
+
+        for i in range(rem):
+            nodes_per_sector[ind_array[i]] += 1
+
+    v1, v2 = get_orthonormal_system(n)
+
+    nodes = []
+    edges = []
+    lim_angles = np.linspace(angle_shift, 2*np.pi+angle_shift, num=n_sectors+1, endpoint=True)
+    i = 0
+    for k in range(0, n_sectors):
+        angles = np.random.uniform(lim_angles[k], lim_angles[k+1], nodes_per_sector[k])
+        angles = np.sort(angles)
+        for j in range(nodes_per_sector[k]):
+            theta = angles[j]
+            nodes.append(unit_vector_by_polar_coords(v1, v2, c, r, theta))
+            edges.append([i, (i + 1) % n_nodes])
+            i += 1
 
     return np.array(nodes), np.array(edges)
 

@@ -90,12 +90,12 @@ shift_params = {
         type=int,
         help="Number of random normals spawned from the delta radius circle"),
     "epsilon_radius": dict(
-        default=1e-4,
+        default=1e-3,
         type=float,
         help="if delta_radius < epsilon_radius, the search for a new normal concludes"
     ),
     "chi_convergence": dict(
-        default=1e-4,
+        default=1e-3,
         type=float,
         help="Convergence is the differences in loss values between iterations. If it's less than chi_convergence**2, "
              "then the search for a new normal concludes"),

@@ -8,8 +8,7 @@ import os
 def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_threshold, phi, theta, symmetric_support=True):
 
     point_cloud = mesh.points()
-    # Reorientation
-    reorient_point_cloud_by_angles(point_cloud, phi, theta)
+
     # Symmetric Support
     max_dist = 1  # As the object is normalized to 1, we can use that
     print("Computing symmetric suppport")

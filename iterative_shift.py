@@ -83,7 +83,7 @@ def iterative_symmetry_shift(mesh,
     while d_radius > e_radius and convergence > c_convergence ** 2:
         new_c = old_c + old_n
         variaton_circle = Circle(new_c, d_radius, old_n)
-        new_normal_endpoints, endpoint_edges = variaton_circle.generate_random_circle_node_edges(
+        new_normal_endpoints, endpoint_edges = variaton_circle.generate_distributed_random_circle_node_edges(
             p_symmetries)
         candidates_normals = np.copy(new_normal_endpoints)
         candidates_normals -= old_c
@@ -218,12 +218,15 @@ def show_mesh_with_all_found_axes(
         gen_circle: Circle,
         normals,
         normal_labels=[],
-        normal_radius=[]):
+        normal_radius=[]) -> ps:
     n_normals = len(normals)
     point_cloud = mesh.points()
     ps.set_up_dir("z_up")
     ps.init()
-    ps_mesh = ps.register_surface_mesh("sorted_mesh", point_cloud, mesh.face_vertex_indices())
+    ps_mesh = ps.register_surface_mesh("sorted_mesh",
+                                       point_cloud,
+                                       mesh.face_vertex_indices(),
+                                       transparency=0.8)
 
     circle_nodes, circle_edges = gen_circle.generate_circle_node_edges()
     ps.register_curve_network(f"Generator Circle", circle_nodes, circle_edges, radius=0.005)
@@ -232,7 +235,8 @@ def show_mesh_with_all_found_axes(
     ps_generator_center.add_vector_quantity("Candidate normals", normals)
     ps.register_curve_network(f"Generator Axis", np.array(
         [-gen_circle.n + gen_circle.c, gen_circle.n + gen_circle.c]), np.array([[0, 1]]),
-                              radius=0.002)
+                              radius=0.002,
+                              color=(209,198,225,255))
     cmap = plt.cm.get_cmap("hsv", n_normals+1)
     color_array = [cmap(i)[:-1] for i in range(n_normals)]
     color_array = np.array(color_array)
