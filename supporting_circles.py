@@ -140,6 +140,8 @@ def generate_distributed_random_circle_node_edges_from_circle_vals(
 
     if n_sectors is None:
         n_sectors = n_nodes//3
+        if n_sectors < 3:
+            n_sectors = 3
 
     nodes_per_sector = np.ones(n_sectors, dtype=int) * (n_nodes // n_sectors)
     rem = n_nodes % n_sectors

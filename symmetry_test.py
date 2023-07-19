@@ -75,34 +75,38 @@ def run_known_symmetry_test(mesh,
 
     resulting_normals = []
     for i in range(1, len(angles)):
-        print("Shifted normal: {} ({} degrees)".format(normals[i, :], angles[i]))
-        rad = angles[i] * np.pi / 180
-        if args.test_type == "sanity":
-            adjusted_delta_radius = np.tan(rad)
-        else:
-            adjusted_delta_radius = args.delta_radius
-        used_args["delta_radius"].append(adjusted_delta_radius)
-        sym_circle = Circle(center, 1, normals[i, :])
-        best_normals, new_generator_circle, num_its, _ = iterative_symmetry_shift(mesh,
-                                                                                  sym_circle,
-                                                                                  adjusted_delta_radius,
-                                                                                  args.decrease_factor,
-                                                                                  args.phi_simmetries,
-                                                                                  args.epsilon_radius,
-                                                                                  args.chi_convergence,
-                                                                                  args.n_sample_points,
-                                                                                  args.n_angles,
-                                                                                  args.show_intermediate_axes)
-        num_its = num_its[-1]
-        best_loss_normal = np.copy(best_normals[-1, :])
-        resulting_normals.append(np.hstack([num_its, best_loss_normal]))
-        if args.show_ps_results:
-            ps_test = show_mesh_with_all_found_axes(mesh, new_generator_circle, best_normals[:, 1:])
-            ps_test.register_curve_network(f"Original Symmetry", np.array(
-                [-origin_circle.n + origin_circle.c, origin_circle.n + origin_circle.c]), np.array([[0, 1]]),
-                                           radius=0.002)
-            ps_test.show()
-        print("Angle diff with original: {}".format(myangle(new_generator_circle.n, origin_circle.n)))
+        # TODO: delete this!
+        if angles[i] == 15:
+            used_args["desviacion"] = [15]
+
+            print("Shifted normal: {} ({} degrees)".format(normals[i, :], angles[i]))
+            rad = angles[i] * np.pi / 180
+            if args.test_type == "sanity":
+                adjusted_delta_radius = np.tan(rad)
+            else:
+                adjusted_delta_radius = args.delta_radius
+            used_args["delta_radius"].append(adjusted_delta_radius)
+            sym_circle = Circle(center, 1, normals[i, :])
+            best_normals, new_generator_circle, num_its, _ = iterative_symmetry_shift(mesh,
+                                                                                      sym_circle,
+                                                                                      adjusted_delta_radius,
+                                                                                      args.decrease_factor,
+                                                                                      args.phi_simmetries,
+                                                                                      args.epsilon_radius,
+                                                                                      args.chi_convergence,
+                                                                                      args.n_sample_points,
+                                                                                      args.n_angles,
+                                                                                      args.show_intermediate_axes)
+            num_its = num_its[-1]
+            best_loss_normal = np.copy(best_normals[-1, :])
+            resulting_normals.append(np.hstack([num_its, best_loss_normal]))
+            if args.show_ps_results:
+                ps_test = show_mesh_with_all_found_axes(mesh, new_generator_circle, best_normals[:, 1:])
+                ps_test.register_curve_network(f"Original Symmetry", np.array(
+                    [-origin_circle.n + origin_circle.c, origin_circle.n + origin_circle.c]), np.array([[0, 1]]),
+                                               radius=0.002)
+                ps_test.show()
+            print("Angle diff with original: {}".format(myangle(new_generator_circle.n, origin_circle.n)))
     resulting_normals = np.stack(resulting_normals)
     normal_angle_diff = compute_normal_angles_change(resulting_normals, origin_circle)
 

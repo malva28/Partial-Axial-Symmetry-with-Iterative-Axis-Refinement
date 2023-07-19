@@ -3,6 +3,7 @@ import sys
 import subprocess
 import os
 import traceback
+import functools
 
 import numpy as np
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 
     dataset_path = path = os.path.join("files", "Larco")
     off_list = os.listdir(path)
-    off_list = [[f for f in off_list if n in f][0] for n in ["18"]]
+    off_list = [f for f in off_list if functools.reduce(lambda a,b: a and b, [n not in f for n in  ["01", "08", "10", "12", "13", "18", "24", "25", "27", "28", "29", "39", "41"]])]
 
     key_args = symmetry_param_keys.copy()
     key_args.extend(shift_params_keys)

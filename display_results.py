@@ -4,10 +4,13 @@ import os
 import matplotlib.pyplot as plt
 
 import openmesh
+
+from mesh_axis_render import show_mesh_with_partial_axis
 from supporting_circles import Circle
 from iterative_shift import show_mesh_with_all_found_axes
 from symmetry_test import parse_axis_perturbation_file
-from transformations import rad_to_degree, linear_range_map, reorient_point_cloud_by_angles, normalize
+from transformations import rad_to_degree, linear_range_map, reorient_point_cloud_by_angles, normalize, \
+    reorient_point_cloud
 
 from main import get_row_and_angles_from_mesh
 from utils import get_generator_circle_from_cache
@@ -179,21 +182,77 @@ def show_known_syms_ps():
         ps.show()
 
 
+def show_symmetric_support(num_csv, symmetric_support_threshold=0.01):
+    dirs_file = ["results", "axis"]
+    dirs_mesh = ["files", "Larco"]
+
+    file_name = "{}_decimated.csv".format(str(num_csv).zfill(2))
+    mesh_name = "{}_decimated.off".format(str(num_csv).zfill(2))
+
+    mesh_file = os.path.join(r"{}\{}\{}".format(*dirs_mesh, mesh_name))
+    mesh = openmesh.read_trimesh(mesh_file)
+    phi, theta, row = get_row_and_angles_from_mesh(mesh,
+                                                   file=mesh_file,
+                                                   )
+    generator_circle = get_generator_circle_from_cache(row)
+    point_cloud = mesh.points()
+    normalize(point_cloud)
+    # Reorientation
+    reorient_point_cloud_by_angles(point_cloud, phi, theta)
+    pd_res = pd.read_csv(os.path.join(*dirs_file, file_name))
+
+    add_desviacion(pd_res)
+
+    sample_group = pd_res.groupby("timestamp")
+    best_samples = sample_group.nth(-1)
+
+    best_samples = best_samples.loc[
+        best_samples["phi_simmetries"] == 16].loc[
+        best_samples["n_angles"] == 6].loc[
+        np.abs((best_samples["desviacion"]) - 15) < 1e-6]
+
+    mean_y_cols = ["normal_x", "normal_y", "normal_z"]
+    mean_desv_phi = best_samples.mean()
+
+    new_circle = Circle(generator_circle.c,
+                        generator_circle.r,
+                        mean_desv_phi[mean_y_cols].to_numpy())
+
+    ps = show_mesh_with_partial_axis(mesh,
+                                     generator_circle,
+                                     symmetric_support_threshold,
+                                     0, 0, False)
+    # linear_range_map(std_ang, [std_ang.min(), std_ang.max()], [0.0001, 0.001]))
+    ps.set_ground_plane_mode("shadow_only")
+    ps.show()
+
+    new_phi = new_circle.get_phi()
+    new_theta = new_circle.get_theta()
+    reorient_point_cloud_by_angles(point_cloud, -new_phi, new_theta)
+    #reorient_point_cloud(point_cloud, new_circle)
+
+    ps = show_mesh_with_partial_axis(mesh,
+                                     generator_circle,
+                                     symmetric_support_threshold,
+                                     0, 0, True)
+    ps.set_ground_plane_mode("shadow_only")
+    ps.show()
+
 def show_dataset_ps():
     dirs_file = ["results", "axis"]
     dirs_mesh = ["files", "Larco"]
 
     for f in os.listdir(os.path.join(*dirs_file)):
-        if "decimated" in f and functools.reduce(lambda a,b: a or b, [n in f for n in ["08", "10", "12", "13", "18", "24", "25", "27", "28", "29", "39", "41"]]):
+        #if "decimated" in f and functools.reduce(lambda a,b: a or b, [n in f for n in ["08", "10", "12", "13", "18", "24", "25", "27", "28", "29", "39", "41"]]):
+        if "decimated" in f:
             num_csv = f[:2]
             file_name = "{}_decimated.csv".format(str(num_csv).zfill(2))
             mesh_name = "{}_decimated.off".format(str(num_csv).zfill(2))
             print("======= {} =======".format(file_name))
 
-
-            #file_name = "mesh{}_rand_man_sim.csv".format(num_csv)
-            #mesh_name = "mesh{}_man_sim.off".format(num_csv)
-            #center_name = "mesh{}.txt".format(num_csv)
+            # file_name = "mesh{}_rand_man_sim.csv".format(num_csv)
+            # mesh_name = "mesh{}_man_sim.off".format(num_csv)
+            # center_name = "mesh{}.txt".format(num_csv)
 
             mesh_file = os.path.join(r"{}\{}\{}".format(*dirs_mesh, mesh_name))
             mesh = openmesh.read_trimesh(mesh_file)
@@ -243,6 +302,6 @@ def show_dataset_ps():
 
 
 if __name__ == "__main__":
-    #show_dataset_ps()
-    show_known_syms_ps()
-
+    show_dataset_ps()
+    #show_known_syms_ps()
+    #show_symmetric_support(8)

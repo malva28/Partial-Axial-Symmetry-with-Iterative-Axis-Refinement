@@ -61,7 +61,9 @@ if __name__ == "__main__":
         print("\n=========================================")
         print("Procesing file: {}".format(path_mesh))
 
-        for i in range(args.num_test):
-            print("\nTest number: {}\n".format(i+1))
+        for i in range(1,21):
+            setattr(args, "phi_simmetries", i)
+            for i in range(args.num_test):
+                print("\nTest number: {}\n".format(i+1))
 
-            run_known_symmetry_test(**mesh_data[num_test]["mesh_args"], **{"args": args})
+                run_known_symmetry_test(**mesh_data[num_test]["mesh_args"], **{"args": args})

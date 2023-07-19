@@ -5,7 +5,12 @@ from transformations import normalize, reorient_point_cloud, reorient_point_clou
 import os
 
 
-def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_threshold, phi, theta, symmetric_support=True):
+def show_mesh_with_partial_axis(mesh,
+                                generator_circle,
+                                symmetric_support_threshold,
+                                phi,
+                                theta,
+                                symmetric_support=True):
 
     point_cloud = mesh.points()
 
@@ -35,7 +40,7 @@ def show_mesh_with_partial_axis(mesh, generator_circle, symmetric_support_thresh
     ps.register_curve_network(f"Generator Axis", np.array(
         [-generator_circle.n + generator_circle.c, generator_circle.n + generator_circle.c]), np.array([[0, 1]]),
                               radius=0.002)
-    ps.show()
+    return ps
 
 
 def take_screenshots(file_name, approx, n_basis):

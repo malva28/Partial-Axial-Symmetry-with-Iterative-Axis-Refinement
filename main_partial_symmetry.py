@@ -181,5 +181,6 @@ if __name__ == '__main__':
         print("no visual")
         exit(0)
 
-    show_mesh_with_partial_axis(mesh, generator_circle, args.symmetric_support_threshold, original_phi, original_theta)
+    ps = show_mesh_with_partial_axis(mesh, generator_circle, args.symmetric_support_threshold, original_phi, original_theta)
+    ps.show()
     take_screenshots(args.file, args.approx, args.n_basis)

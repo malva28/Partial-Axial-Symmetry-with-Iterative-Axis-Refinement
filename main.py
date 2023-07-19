@@ -113,13 +113,14 @@ if __name__ == "__main__":
         used_args[key] = additional[key]
 
     if args.visual:
-        show_mesh_with_partial_axis(
+        ps = show_mesh_with_partial_axis(
             mesh,
             new_generator_circle,
             args.symmetric_support_threshold,
             phi=0.0,
             theta=0.0,
             symmetric_support=False)
+        ps.show()
 
     best_normals_with_angle_diff = compute_normal_angles_change(best_normals, generator_circle)
     #plot_loss_and_angle_change(best_normals_with_angle_diff)
